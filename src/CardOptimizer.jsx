@@ -11,7 +11,7 @@ const CURRENCY_VALUES = {
 };
 
 const CARDS = [
-  { id: "chase_sapphire_reserve",       name: "Chase Sapphire Reserve",              shortName: "Sapphire Reserve",    issuer: "Chase",          currency: "UR",       status: "supported", multipliers: { dining:3,   groceries:1,   gas:1,   travel:3,  transit:1, streaming:1, online:1,   drugstores:1,   other:1   } },
+  { id: "chase_sapphire_reserve",       name: "Chase Sapphire Reserve",              shortName: "Sapphire Reserve",    issuer: "Chase",          currency: "UR",       status: "supported", multipliers: { dining:3,   groceries:1,   gas:1,   travel:4,  transit:1, streaming:1, online:1,   drugstores:1,   other:1   } },
   { id: "chase_sapphire_preferred",     name: "Chase Sapphire Preferred",            shortName: "Sapphire Preferred",  issuer: "Chase",          currency: "UR",       status: "supported", multipliers: { dining:3,   groceries:3,   gas:1,   travel:2,  transit:1, streaming:3, online:1,   drugstores:1,   other:1   } },
   { id: "citi_strata_elite",            name: "Citi Strata Elite",                   shortName: "Strata Elite",        issuer: "Citi",           currency: "TYP",      status: "supported", multipliers: { dining:3,   groceries:3,   gas:3,   travel:3,  transit:1, streaming:1, online:1,   drugstores:1,   other:1   } },
   { id: "amex_platinum",                name: "Amex Platinum",                       shortName: "Platinum",            issuer: "Amex",           currency: "MR",       status: "supported", multipliers: { dining:1,   groceries:1,   gas:1,   travel:5,  transit:1, streaming:1, online:1,   drugstores:1,   other:1   } },
