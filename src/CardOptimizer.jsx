@@ -69,7 +69,7 @@ const ISSUER_PALETTE = {
 function CardBadge({ card, width = 76, height = 48, isSelected = false }) {
   const [from, to] = ISSUER_PALETTE[card.issuer] || ["#1f2937", "#374151"];
   const isDraft = card.status === "draft";
-  const imgSrc = `/cards/${card.id}.png`;
+  const imgSrc = `/${card.id}.png`;
   const [imgError, setImgError] = React.useState(false);
 
   if (!imgError) {
