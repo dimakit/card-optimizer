@@ -516,7 +516,11 @@ export default function App() {
                             {best.card.name}
                           </div>
                           <div className="mono" style={{ fontSize: "0.63rem", color: "rgba(240,237,232,0.3)" }}>
-                            {best.mult}× · {best.card.currency}
+                            {best.mult}× {best.card.currency}
+                            <span style={{ color: "rgba(240,237,232,0.18)", margin: "0 3px" }}>·</span>
+                            <span style={{ color: "rgba(240,237,232,0.45)" }}>
+                              {(CURRENCY_VALUES[best.card.currency][mode] * 100).toFixed(1)}¢/pt
+                            </span>
                             {runner && Math.abs(runner.pct - best.pct) > 0.001 && (
                               <span style={{ color: "rgba(240,237,232,0.17)", marginLeft: 6 }}>
                                 vs {runner.pct.toFixed(1)}% {runner.card.shortName}
