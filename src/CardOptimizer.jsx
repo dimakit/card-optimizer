@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ function CardBadge({ card, width = 76, height = 48, isSelected = false }) {
   const [from, to] = ISSUER_PALETTE[card.issuer] || ["#1f2937", "#374151"];
   const isDraft = card.status === "draft";
   const imgSrc = `/${card.id}.png`;
-  const [imgError, setImgError] = React.useState(false);
+  const [imgError, setImgError] = useState(false);
 
   if (!imgError) {
     return (
