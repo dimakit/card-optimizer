@@ -69,61 +69,49 @@ const ISSUER_PALETTE = {
 function CardBadge({ card, width = 76, height = 48, isSelected = false }) {
   const [from, to] = ISSUER_PALETTE[card.issuer] || ["#1f2937", "#374151"];
   const isDraft = card.status === "draft";
+  const imgSrc = `/cards/${card.id}.png`;
+  const [imgError, setImgError] = React.useState(false);
+
+  if (!imgError) {
+    return (
+      <div style={{
+        width, height, borderRadius: 7, flexShrink: 0, overflow: "hidden",
+        border: isDraft ? "1px dashed rgba(240,237,232,0.2)" : isSelected ? "1px solid rgba(240,237,232,0.3)" : "1px solid rgba(240,237,232,0.1)",
+        opacity: isDraft ? 0.65 : 1, boxSizing: "border-box", position: "relative",
+      }}>
+        <img
+          src={imgSrc}
+          onError={() => setImgError(true)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          alt={card.name}
+        />
+        {isDraft && (
+          <div style={{ position: "absolute", bottom: 4, right: 5 }} className="mono">
+            <span style={{ fontSize: 7, color: "rgba(240,237,232,0.7)" }}>SOON</span>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
       style={{
-        width,
-        height,
-        borderRadius: 7,
-        flexShrink: 0,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        padding: "6px 8px",
+        width, height, borderRadius: 7, flexShrink: 0, display: "flex", flexDirection: "column",
+        justifyContent: "space-between", padding: "6px 8px",
         background: `linear-gradient(135deg, ${from}, ${to})`,
-        border: isDraft
-          ? "1px dashed rgba(240,237,232,0.2)"
-          : isSelected
-            ? "1px solid rgba(240,237,232,0.3)"
-            : "1px solid rgba(240,237,232,0.1)",
-        opacity: isDraft ? 0.65 : 1,
-        boxSizing: "border-box",
+        border: isDraft ? "1px dashed rgba(240,237,232,0.2)" : isSelected ? "1px solid rgba(240,237,232,0.3)" : "1px solid rgba(240,237,232,0.1)",
+        opacity: isDraft ? 0.65 : 1, boxSizing: "border-box",
       }}
     >
-      <div
-        className="mono"
-        style={{
-          fontSize: Math.max(7, width * 0.095),
-          letterSpacing: "0.05em",
-          textTransform: "uppercase",
-          color: "rgba(240,237,232,0.55)",
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-          textOverflow: "ellipsis",
-        }}
-      >
+      <div className="mono" style={{ fontSize: Math.max(7, width * 0.095), letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(240,237,232,0.55)", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
         {card.issuer}
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 4 }}>
-        <div
-          className="serif"
-          style={{
-            fontSize: Math.max(9, width * 0.135),
-            lineHeight: 1.1,
-            color: "rgba(240,237,232,0.92)",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
+        <div className="serif" style={{ fontSize: Math.max(9, width * 0.135), lineHeight: 1.1, color: "rgba(240,237,232,0.92)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {card.shortName}
         </div>
-        {isDraft && (
-          <div className="mono" style={{ fontSize: 7, color: "rgba(240,237,232,0.4)", flexShrink: 0 }}>
-            SOON
-          </div>
-        )}
+        {isDraft && <div className="mono" style={{ fontSize: 7, color: "rgba(240,237,232,0.4)", flexShrink: 0 }}>SOON</div>}
       </div>
     </div>
   );
