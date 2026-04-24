@@ -62,19 +62,19 @@ const ISSUER_PALETTE = {
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 const T = {
-  bg:          "#f0ede8",
-  surface:     "#e8e4de",
-  surfaceAlt:  "#dedad3",
-  border:      "rgba(0,0,0,0.08)",
-  borderHover: "rgba(0,0,0,0.16)",
-  text:        "#1a1814",
-  textMid:     "#6b6560",
-  textDim:     "#9e9890",
-  accent:      "#1a1814",
-  accentText:  "#f0ede8",
-  selectedBg:  "rgba(26,24,20,0.07)",
-  selectedBorder: "rgba(26,24,20,0.22)",
-  topbar:      "rgba(240,237,232,0.96)",
+  bg:             "#f7f7f7",
+  surface:        "#e2e2e2",
+  surfaceAlt:     "#d4d4d4",
+  border:         "rgba(0,0,0,0.10)",
+  borderHover:    "rgba(0,0,0,0.20)",
+  text:           "#1a1a1a",
+  textMid:        "#555555",
+  textDim:        "#888888",
+  accent:         "#1a1a1a",
+  accentText:     "#ffffff",
+  selectedBg:     "#e8f5e9",
+  selectedBorder: "#66bb6a",
+  topbar:         "rgba(247,247,247,0.97)",
 };
 
 // ─── Card Badge ────────────────────────────────────────────────────────────────
