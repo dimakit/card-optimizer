@@ -458,6 +458,23 @@ export default function App() {
                 const own = ownership[card.id] || null;
                 const isAssigned = !!own;
                 const isDraft = card.status === "draft";
+
+                const setOwn = (val) => {
+                  setOwnership(prev => {
+                    const updated = { ...prev };
+                    if (!val) delete updated[card.id];
+                    else updated[card.id] = val;
+                    return updated;
+                  });
+                };
+
+                // Clicking the row toggles: unassigned → me → unassigned (simple toggle)
+                // Dropdown handles me / spouse / both / none precisely
+                const handleRowClick = () => {
+                  if (isDraft) return;
+                  setOwn(own ? null : "me");
+                };
+
                 return (
                   <div key={card.id} className={`card-row${isDraft ? " draft-row" : ""}`}
                     style={{
@@ -466,18 +483,7 @@ export default function App() {
                       border: `1px solid ${isAssigned ? T.selectedBorder : T.border}`,
                       opacity: isDraft ? 0.55 : 1,
                     }}
-                    onClick={() => {
-                      if (isDraft) return;
-                      // cycle: null → me → spouse → both → null
-                      const cycle = { null: "me", me: "spouse", spouse: "both", both: null };
-                      const next = cycle[own ?? "null"] ?? cycle["null"];
-                      setOwnership(prev => {
-                        const updated = { ...prev };
-                        if (next === null) delete updated[card.id];
-                        else updated[card.id] = next;
-                        return updated;
-                      });
-                    }}
+                    onClick={handleRowClick}
                   >
                     <CardBadge card={card} width={76} height={48} isSelected={isAssigned} />
 
@@ -490,24 +496,27 @@ export default function App() {
                       <MultiplierLine card={card} />
                     </div>
 
-                    {/* Ownership indicator */}
+                    {/* Ownership dropdown */}
                     {!isDraft && (
-                      <div style={{ flexShrink: 0, minWidth: 64, textAlign: "right" }}>
-                        {own ? (
-                          <div style={{
-                            display: "inline-block", padding: "4px 10px", borderRadius: 5,
-                            background: T.accent, color: T.accentText,
-                            fontSize: "0.62rem", fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.05em",
-                          }}>
-                            {own === "me" ? names.me : own === "spouse" ? names.spouse : "BOTH"}
-                          </div>
-                        ) : (
-                          <div style={{
-                            display: "inline-block", padding: "4px 10px", borderRadius: 5,
-                            border: `1px dashed ${T.border}`, color: T.textDim,
-                            fontSize: "0.62rem", fontFamily: "monospace", letterSpacing: "0.05em",
-                          }}>tap to add</div>
-                        )}
+                      <div style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                        <select
+                          value={own || ""}
+                          onChange={e => setOwn(e.target.value || null)}
+                          className="mono"
+                          style={{
+                            padding: "5px 8px", borderRadius: 6, fontSize: "0.65rem", fontWeight: 600,
+                            border: `1px solid ${isAssigned ? T.selectedBorder : T.border}`,
+                            background: isAssigned ? T.accent : T.surface,
+                            color: isAssigned ? T.accentText : T.textDim,
+                            cursor: "pointer", outline: "none", appearance: "auto",
+                            minWidth: 90,
+                          }}
+                        >
+                          <option value="">— none —</option>
+                          <option value="me">{names.me}</option>
+                          <option value="spouse">{names.spouse}</option>
+                          <option value="both">Both</option>
+                        </select>
                       </div>
                     )}
                   </div>
