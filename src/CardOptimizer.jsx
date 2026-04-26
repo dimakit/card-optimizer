@@ -162,18 +162,33 @@ function CardBadge({ card, width = 76, height = 48, isSelected = false }) {
 // ─── Multiplier line ───────────────────────────────────────────────────────────
 
 function MultiplierLine({ card }) {
+  const allMults = CATEGORIES.map(cat => effectiveMult(card, cat.key));
+  const allSame = allMults.every(m => m === allMults[0]);
+
+  // If all categories earn the same rate, just say "Nx on everything"
+  if (allSame) {
+    const m = allMults[0];
+    return (
+      <span style={{ fontSize: "0.66rem", fontFamily: "monospace" }}>
+        <span style={{ color: m >= 2 ? T.textMid : T.textDim, fontWeight: m >= 2 ? 500 : 400 }}>{m}×</span>
+        <span style={{ color: T.textDim }}> on everything</span>
+      </span>
+    );
+  }
+
+  // Show categories that beat the "other" floor
+  const floor = card.multipliers.other ?? 1;
   const highlights = CATEGORIES
-    .map(cat => ({ cat, mult: card.multipliers[cat.key] }))
-    .filter(x => x.mult > 1)
+    .map(cat => ({ cat, mult: effectiveMult(card, cat.key) }))
+    .filter(x => x.mult > floor || (floor > 1 && x.cat.key === "other"))
     .sort((a, b) => b.mult - a.mult);
 
-  if (!highlights.length) return (
-    <span style={{ color: T.textDim, fontSize: "0.66rem", fontFamily: "monospace" }}>1× on everything</span>
-  );
+  // If nothing beats the floor, just show the flat rate
+  const bonusHighlights = highlights.filter(h => h.cat.key !== "other");
 
   return (
     <span style={{ fontSize: "0.66rem", fontFamily: "monospace", lineHeight: 1.65 }}>
-      {highlights.map((h, i) => (
+      {bonusHighlights.map((h, i) => (
         <span key={h.cat.key}>
           {i > 0 && <span style={{ color: T.textDim }}> · </span>}
           <span style={{
@@ -183,6 +198,15 @@ function MultiplierLine({ card }) {
           <span style={{ color: T.textMid }}> {h.cat.label.toLowerCase()}</span>
         </span>
       ))}
+      {floor > 1 && (
+        <span>
+          {bonusHighlights.length > 0 && <span style={{ color: T.textDim }}> · </span>}
+          <span style={{ color: T.textDim }}>{floor}× everything else</span>
+        </span>
+      )}
+      {floor === 1 && bonusHighlights.length === 0 && (
+        <span style={{ color: T.textDim }}>1× on everything</span>
+      )}
     </span>
   );
 }
@@ -201,10 +225,16 @@ function effectiveStatus(card) {
 
 // ─── Scoring ──────────────────────────────────────────────────────────────────
 
+function effectiveMult(card, catKey) {
+  const catMult = card.multipliers[catKey] ?? 1;
+  const otherMult = card.multipliers.other ?? 1;
+  // "other" is a floor — if a category has no specific bonus, the flat rate applies
+  return catKey === "other" ? otherMult : Math.max(catMult, otherMult);
+}
+
 function computeBreadth(card, mode) {
   return CATEGORIES.reduce((acc, cat) => {
-    const mult = card.multipliers[cat.key] ?? card.multipliers.other;
-    return acc + mult * CURRENCY_VALUES[card.currency][mode];
+    return acc + effectiveMult(card, cat.key) * CURRENCY_VALUES[card.currency][mode];
   }, 0);
 }
 
@@ -212,7 +242,7 @@ function getBestCard(cards, category, mode, pointsPref) {
   const eligible = cards.filter(c => effectiveStatus(c) !== "draft");
   if (!eligible.length) return null;
   const scored = eligible.map(card => {
-    const mult = card.multipliers[category] ?? card.multipliers.other;
+    const mult = effectiveMult(card, category);
     const cv = CURRENCY_VALUES[card.currency][mode];
     return { card, mult, value: mult * cv, pct: mult * cv * 100, breadth: computeBreadth(card, mode) };
   });
@@ -255,7 +285,10 @@ function buildCardResults(cards, mode, pointsPref) {
     const best = getBestCard(eligible, cat.key, mode, pointsPref);
     if (best) {
       if (!catWinners[best.card.id]) catWinners[best.card.id] = [];
-      catWinners[best.card.id].push({ cat, best });
+      // Use effectiveMult so "other" floor is reflected in displayed multiplier
+      const displayMult = effectiveMult(best.card, cat.key);
+      const cv = CURRENCY_VALUES[best.card.currency][mode];
+      catWinners[best.card.id].push({ cat, best: { ...best, mult: displayMult, pct: displayMult * cv * 100 } });
     }
   });
 
