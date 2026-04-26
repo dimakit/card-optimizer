@@ -175,6 +175,38 @@
     "_updatedBy": "Q2 2026: Amazon + Chase Travel Portal"
   },
   {
+    "id": "chase_prime",
+    "name": "Amazon Prime Visa",
+    "shortName": "Amazon Prime",
+    "issuer": "Chase",
+    "currency": "CASHBACK",
+    "status": "supported",
+    "multipliers": {
+      "dining": 2,
+      "groceries": 5,
+      "gas": 2,
+      "travel": 1,
+      "drugstores": 1,
+      "amazon": 5,
+      "other": 1,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 5,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
+    },
+    "_caveats": {
+      "groceries": "5\u00d7 at Whole Foods only \u00b7 excludes other grocery stores"
+    },
+    "_note": "5% Amazon/Whole Foods/Chase Travel (Prime req), 2% dining/gas, 1% other. Points not transferable to UR."
+  },
+  {
     "id": "citi_strata_elite",
     "name": "Citi Strata Elite",
     "shortName": "Strata Elite",
