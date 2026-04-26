@@ -393,6 +393,24 @@ export default function App() {
   });
   const [showMultipliers, setShowMultipliers] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [cardConfig, setCardConfig] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("cp_card_config_v1") || "{}"); }
+    catch { return {}; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem("cp_card_config_v1", JSON.stringify(cardConfig)); } catch {}
+  }, [cardConfig]);
+
+  // Build effective CARDS with configurable multipliers applied
+  const effectiveCards = CARDS.map(card => {
+    if (!card.configurable) return card;
+    const chosen = cardConfig[card.id] || [];
+    if (!chosen.length) return card; // no config = all 1x
+    const newMults = { ...card.multipliers };
+    chosen.forEach(catKey => { newMults[catKey] = card.configurableRate || 5; });
+    return { ...card, multipliers: newMults };
+  });
 
   const [pointsPref, setPointsPref] = useState(() => {
     try { return localStorage.getItem("cp_points_pref_v1") || "none"; } catch { return "none"; }
@@ -471,9 +489,9 @@ export default function App() {
     try { localStorage.setItem("cp_names_v1", JSON.stringify(names)); } catch {}
   }, [names]);
 
-  const ISSUERS = [...new Set(CARDS.filter(c => c.status === "supported").map(c => c.issuer))];
+  const ISSUERS = [...new Set(effectiveCards.filter(c => c.status === "supported").map(c => c.issuer))];
 
-  const filtered = CARDS.filter(c => {
+  const filtered = effectiveCards.filter(c => {
     const q = search.toLowerCase();
     const matchesSearch = !q || c.name.toLowerCase().includes(q) || c.issuer.toLowerCase().includes(q);
     const matchesIssuer = !issuerFilter || c.issuer === issuerFilter;
@@ -493,8 +511,8 @@ export default function App() {
   const hiddenFiltered  = filtered.filter(c => hidden.includes(c.id));
   const sortedFiltered  = visibleFiltered; // keep original catalog order
 
-  const meCards = ownerCards(ownership, "me", CARDS);
-  const spouseCards = ownerCards(ownership, "spouse", CARDS);
+  const meCards = ownerCards(ownership, "me", effectiveCards);
+  const spouseCards = ownerCards(ownership, "spouse", effectiveCards);
   const totalAssigned = Object.keys(ownership).length;
 
   const isSingleWallet = meCards.length > 0 && spouseCards.length === 0;
@@ -770,10 +788,61 @@ export default function App() {
                         <span className="serif" style={{ fontSize: "0.87rem", color: isAssigned ? T.text : T.textMid, lineHeight: 1.2 }}>{card.name}</span>
                         <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim, border: `1px solid ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.currency}</span>
                         {isDraft && !card.rotatingPeriod && <span className="mono" style={{ fontSize: "0.57rem", color: T.textDim, border: `1px dashed ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>coming soon</span>}
+                        {card.configurable && isAssigned && (cardConfig[card.id] || []).length === 0 && (
+                          <span className="mono" style={{ fontSize: "0.57rem", color: "#e67e22", border: "1px solid #e67e22", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>configure</span>
+                        )}
+                        {card.configurable && isAssigned && (cardConfig[card.id] || []).length > 0 && (
+                          <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>
+                            5× {(cardConfig[card.id] || []).map(k => CATEGORIES.find(c=>c.key===k)?.label).join(", ")}
+                          </span>
+                        )}
                         {isExpired && <span className="mono" style={{ fontSize: "0.57rem", color: "#ef4444", border: "1px dashed #ef4444", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>period ended</span>}
                         {card.rotatingNote && !isExpired && !isDraft && <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.rotatingNote}</span>}
                       </div>
                       <MultiplierLine card={card} />
+                      {/* Configurable category picker */}
+                      {card.configurable && isAssigned && (() => {
+                        const chosen = cardConfig[card.id] || [];
+                        const maxPicks = card.configurable === "double" ? 2 : 1;
+                        const needsConfig = chosen.length === 0;
+                        return (
+                          <div style={{ marginTop: 6 }} onClick={e => e.stopPropagation()}>
+                            {needsConfig && (
+                              <div className="mono" style={{ fontSize: "0.6rem", color: "#e67e22", marginBottom: 4, fontWeight: 600 }}>
+                                ⚠ Pick {maxPicks === 1 ? "a category" : "up to 2 categories"} to include in optimizer
+                              </div>
+                            )}
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                              {CATEGORIES.filter(c => c.key !== "other").map(cat => {
+                                const isChosen = chosen.includes(cat.key);
+                                const isDisabled = !isChosen && chosen.length >= maxPicks;
+                                return (
+                                  <button key={cat.key} className="mono pill-btn"
+                                    onClick={() => {
+                                      setCardConfig(prev => {
+                                        const cur = prev[card.id] || [];
+                                        const next = isChosen
+                                          ? cur.filter(k => k !== cat.key)
+                                          : cur.length < maxPicks ? [...cur, cat.key] : cur;
+                                        return { ...prev, [card.id]: next };
+                                      });
+                                    }}
+                                    disabled={isDisabled}
+                                    style={{
+                                      padding: "2px 7px", borderRadius: 4, fontSize: "0.58rem", fontWeight: 500,
+                                      border: `1px solid ${isChosen ? T.selectedBorder : T.border}`,
+                                      background: isChosen ? T.selectedBg : "transparent",
+                                      color: isChosen ? "#2e7d32" : isDisabled ? T.textDim : T.textMid,
+                                      opacity: isDisabled ? 0.4 : 1, cursor: isDisabled ? "not-allowed" : "pointer",
+                                    }}>
+                                    {cat.icon} {cat.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Ownership dropdown + hide toggle */}
