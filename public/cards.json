@@ -25,7 +25,8 @@
       "uber": 1,
       "peloton": 10,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     },
     "timedBonuses": [
       {
@@ -72,7 +73,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 3
     },
     "timedBonuses": [
       {
@@ -111,7 +113,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     },
     "timedBonuses": [
       {
@@ -150,7 +153,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     },
     "rotatingPeriod": {
       "start": "2026-04-01",
@@ -183,7 +187,7 @@
     "status": "supported",
     "multipliers": {
       "dining": 2,
-      "groceries": 5,
+      "groceries": 1,
       "gas": 2,
       "travel": 1,
       "drugstores": 1,
@@ -199,7 +203,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 5
     },
     "_caveats": {
       "groceries": "5\u00d7 at Whole Foods only \u00b7 excludes other grocery stores"
@@ -232,7 +237,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 3
     }
   },
   {
@@ -261,7 +267,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -290,7 +297,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     },
     "_caveats": {
       "groceries": "Excludes Target, Walmart, wholesale clubs"
@@ -322,7 +330,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 6
     }
   },
   {
@@ -351,7 +360,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 3
     }
   },
   {
@@ -380,7 +390,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 5,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -409,7 +420,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -438,7 +450,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -467,7 +480,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -496,7 +510,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -525,7 +540,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -554,7 +570,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -583,7 +600,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -612,7 +630,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -641,7 +660,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -670,7 +690,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -702,7 +723,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   },
   {
@@ -731,7 +753,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     },
     "rotatingPeriod": {
       "start": "2026-04-01",
@@ -774,7 +797,8 @@
       "uber": 1,
       "peloton": 1,
       "entertainment": 1,
-      "groceries_big_box": 1
+      "groceries_big_box": 1,
+      "whole_foods": 1
     }
   }
 ]
