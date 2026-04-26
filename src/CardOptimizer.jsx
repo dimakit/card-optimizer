@@ -10,29 +10,9 @@ const CURRENCY_VALUES = {
   CASHBACK: { cashback: 0.01,  travel: 0.01  },
 };
 
-const CARDS = [
-  { id: "chase_sapphire_reserve",        name: "Chase Sapphire Reserve",               shortName: "Sapphire Reserve",   issuer: "Chase",           currency: "UR",       status: "supported", multipliers: { dining:3,   groceries:1,   gas:1,   travel:4,  transit:1,   streaming:1,   online:1,   drugstores:1,   other:1   } },
-  { id: "chase_sapphire_preferred",      name: "Chase Sapphire Preferred",             shortName: "Sapphire Pref.",     issuer: "Chase",           currency: "UR",       status: "supported", multipliers: { dining:3,   groceries:3,   gas:1,   travel:2,  transit:1,   streaming:3,   online:1,   drugstores:1,   other:1   } },
-  { id: "citi_strata_elite",             name: "Citi Strata Elite",                    shortName: "Strata Elite",       issuer: "Citi",            currency: "TYP",      status: "supported", multipliers: { dining:3,   groceries:3,   gas:3,   travel:3,  transit:1,   streaming:1,   online:1,   drugstores:1,   other:1   } },
-  { id: "amex_platinum",                 name: "Amex Platinum",                        shortName: "Platinum",           issuer: "Amex",            currency: "MR",       status: "supported", multipliers: { dining:1,   groceries:1,   gas:1,   travel:5,  transit:1,   streaming:1,   online:1,   drugstores:1,   other:1   } },
-  { id: "amex_gold",                     name: "Amex Gold",                            shortName: "Gold",               issuer: "Amex",            currency: "MR",       status: "supported", multipliers: { dining:4,   groceries:4,   gas:1,   travel:3,  transit:1,   streaming:1,   online:1,   drugstores:1,   other:1   } },
-  { id: "amex_blue_cash_preferred",      name: "Amex Blue Cash Preferred",             shortName: "Blue Cash Pref.",    issuer: "Amex",            currency: "CASHBACK", status: "supported", multipliers: { dining:1,   groceries:6,   gas:3,   travel:1,  transit:1,   streaming:6,   online:1,   drugstores:1,   other:1   } },
-  { id: "amex_blue_cash_everyday",       name: "Amex Blue Cash Everyday",              shortName: "Blue Cash Ev.",      issuer: "Amex",            currency: "CASHBACK", status: "supported", multipliers: { dining:1,   groceries:3,   gas:3,   travel:1,  transit:1,   streaming:1,   online:3,   drugstores:1,   other:1   } },
-  { id: "capital_one_venture_x",         name: "Capital One Venture X",                shortName: "Venture X",          issuer: "Capital One",     currency: "CAPONE",   status: "supported", multipliers: { dining:2,   groceries:2,   gas:2,   travel:5,  transit:2,   streaming:2,   online:2,   drugstores:2,   other:2   } },
-  { id: "capital_one_venture",           name: "Capital One Venture",                  shortName: "Venture",            issuer: "Capital One",     currency: "CAPONE",   status: "supported", multipliers: { dining:2,   groceries:2,   gas:2,   travel:5,  transit:2,   streaming:2,   online:2,   drugstores:2,   other:2   } },
-  { id: "citi_double_cash",              name: "Citi Double Cash",                     shortName: "Double Cash",        issuer: "Citi",            currency: "CASHBACK", status: "supported", multipliers: { dining:2,   groceries:2,   gas:2,   travel:2,  transit:2,   streaming:2,   online:2,   drugstores:2,   other:2   } },
-  { id: "wells_fargo_active_cash",       name: "Wells Fargo Active Cash",              shortName: "Active Cash",        issuer: "Wells Fargo",     currency: "CASHBACK", status: "supported", multipliers: { dining:2,   groceries:2,   gas:2,   travel:2,  transit:2,   streaming:2,   online:2,   drugstores:2,   other:2   } },
-  { id: "wells_fargo_autograph_journey", name: "Wells Fargo Autograph Journey",        shortName: "Autograph J.",       issuer: "Wells Fargo",     currency: "CASHBACK", status: "supported", multipliers: { dining:3,   groceries:1,   gas:3,   travel:3,  transit:1,   streaming:1,   online:1,   drugstores:1,   other:1   } },
-  { id: "bofa_premium_rewards",          name: "Bank of America Premium Rewards",      shortName: "BoA Premium",        issuer: "Bank of America", currency: "CASHBACK", status: "supported", multipliers: { dining:2,   groceries:1.5, gas:1.5, travel:2,  transit:1.5, streaming:1.5, online:1.5, drugstores:1.5, other:1.5 } },
-  { id: "bofa_premium_rewards_elite",    name: "Bank of America Premium Rewards Elite",shortName: "BoA Premium Elite",  issuer: "Bank of America", currency: "CASHBACK", status: "supported", multipliers: { dining:2,   groceries:1.5, gas:1.5, travel:2,  transit:1.5, streaming:1.5, online:1.5, drugstores:1.5, other:1.5 } },
-  { id: "usbank_altitude_connect",       name: "U.S. Bank Altitude Connect",           shortName: "Altitude Connect",   issuer: "U.S. Bank",       currency: "CASHBACK", status: "supported", multipliers: { dining:2,   groceries:1,   gas:4,   travel:4,  transit:2,   streaming:1,   online:1,   drugstores:1,   other:1   } },
-  { id: "fidelity_rewards_2",            name: "Fidelity Rewards Visa",                shortName: "Fidelity 2%",        issuer: "Fidelity",        currency: "CASHBACK", status: "supported", multipliers: { dining:2,   groceries:2,   gas:2,   travel:2,  transit:2,   streaming:2,   online:2,   drugstores:2,   other:2   } },
-  { id: "sofi_credit_card",              name: "SoFi Credit Card",                     shortName: "SoFi 2%",            issuer: "SoFi",            currency: "CASHBACK", status: "supported", multipliers: { dining:2,   groceries:2,   gas:2,   travel:2,  transit:2,   streaming:2,   online:2,   drugstores:2,   other:2   } },
-  { id: "apple_card",                    name: "Apple Card",                           shortName: "Apple Card",         issuer: "Apple/GS",        currency: "CASHBACK", status: "supported", multipliers: { dining:2,   groceries:2,   gas:2,   travel:2,  transit:2,   streaming:2,   online:2,   drugstores:2,   other:2   } },
-  { id: "citi_custom_cash",              name: "Citi Custom Cash",                     shortName: "Custom Cash",        issuer: "Citi",            currency: "CASHBACK", status: "draft",     multipliers: { dining:5,   groceries:5,   gas:5,   travel:5,  transit:5,   streaming:5,   online:5,   drugstores:5,   other:1   } },
-  { id: "discover_it",                   name: "Discover it Cash Back",                shortName: "Discover it",        issuer: "Discover",        currency: "CASHBACK", status: "draft",     multipliers: { dining:1,   groceries:1,   gas:1,   travel:1,  transit:1,   streaming:1,   online:1,   drugstores:1,   other:1   } },
-  { id: "usbank_cash_plus",              name: "U.S. Bank Cash+ Visa",                 shortName: "U.S. Bank Cash+",    issuer: "U.S. Bank",       currency: "CASHBACK", status: "draft",     multipliers: { dining:1,   groceries:1,   gas:1,   travel:1,  transit:1,   streaming:1,   online:1,   drugstores:1,   other:1   } },
-];
+const CARDS_PLACEHOLDER = []; // loaded from /cards.json
+
+
 
 const CATEGORIES = [
   { key: "dining",     label: "Dining",          icon: "🍽️" },
@@ -174,6 +154,7 @@ function CardBadge({ card, width = 76, height = 48, isSelected = false }) {
       </div>
     </div>
   );
+  );
 }
 
 // ─── Multiplier line ───────────────────────────────────────────────────────────
@@ -265,6 +246,7 @@ function OwnerToggle({ cardId, ownership, setOwnership }) {
       })}
     </div>
   );
+  );
 }
 
 // ─── Results column ────────────────────────────────────────────────────────────
@@ -323,11 +305,24 @@ function ResultsColumn({ cards, label, mode, color }) {
       </div>
     </div>
   );
+  );
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const [cards, setCards] = useState([]);
+  const [cardsLoading, setCardsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/cards.json")
+      .then(r => r.json())
+      .then(data => { setCards(data); setCardsLoading(false); })
+      .catch(() => setCardsLoading(false));
+  }, []);
+
+  const CARDS = cards;
+
   const [ownership, setOwnership] = useState(() => {
     try { return JSON.parse(localStorage.getItem("cp_ownership_v2") || "{}"); }
     catch { return {}; }
@@ -349,6 +344,7 @@ export default function App() {
   });
   const [search, setSearch] = useState("");
   const [issuerFilter, setIssuerFilter] = useState(null);
+  const [ownerFilter, setOwnerFilter] = useState(null); // null | "both" | "me" | "spouse" | "none"
   const [showShare, setShowShare] = useState(false);
   const [loadCode, setLoadCode] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -407,10 +403,20 @@ export default function App() {
 
   const assigned = id => !!ownership[id];
 
+  const ownerFiltered = ownerFilter === null ? filtered : filtered.filter(c => {
+    const own = ownership[c.id] || null;
+    if (ownerFilter === "none") return !own;
+    return own === ownerFilter;
+  });
+
+  // Sort: both → me → spouse → unassigned (non-draft) → draft
+  const sortOrder = { both: 0, me: 1, spouse: 2 };
   const sortedFiltered = [
-    ...filtered.filter(c => assigned(c.id)),
-    ...filtered.filter(c => !assigned(c.id) && c.status !== "draft"),
-    ...filtered.filter(c => !assigned(c.id) && c.status === "draft"),
+    ...ownerFiltered.filter(c => ownership[c.id] === "both"),
+    ...ownerFiltered.filter(c => ownership[c.id] === "me"),
+    ...ownerFiltered.filter(c => ownership[c.id] === "spouse"),
+    ...ownerFiltered.filter(c => !ownership[c.id] && c.status !== "draft"),
+    ...ownerFiltered.filter(c => !ownership[c.id] && c.status === "draft"),
   ];
 
   const meCards = ownerCards(ownership, "me");
@@ -420,6 +426,13 @@ export default function App() {
   const isSingleWallet = meCards.length > 0 && spouseCards.length === 0;
 
   return (
+    if (cardsLoading) return (
+      <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span className="mono" style={{ color: "#888", fontSize: "0.8rem", letterSpacing: "0.08em" }}>LOADING...</span>
+      </div>
+    );
+
+    return (
     <div style={{ minHeight: "100vh", background: T.bg, color: T.text, fontFamily: "Georgia,serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500;600&display=swap');
@@ -583,8 +596,39 @@ export default function App() {
                 style={{ width: "100%", padding: "9px 12px 9px 30px", background: T.surface, border: `1px solid ${T.border}`, borderRadius: 7, color: T.text, fontSize: "0.8rem" }} />
             </div>
 
+            {/* Owner filter pills */}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8, alignItems: "center" }}>
+              <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.04em", marginRight: 2 }}>WALLET:</span>
+              {[
+                { val: null,     label: "All" },
+                { val: "both",   label: "Both" },
+                { val: "me",     label: names.me },
+                { val: "spouse", label: names.spouse },
+                { val: "none",   label: "Unassigned" },
+              ].map(({ val, label }) => {
+                const active = ownerFilter === val;
+                return (
+                  <button key={val ?? "all"} className="mono pill-btn"
+                    onClick={() => setOwnerFilter(active ? null : val)}
+                    style={{
+                      padding: "4px 11px", borderRadius: 20, fontSize: "0.66rem", fontWeight: 500, letterSpacing: "0.04em",
+                      border: `1px solid ${active ? T.accent : T.border}`,
+                      background: active ? T.accent : "transparent",
+                      color: active ? T.accentText : T.textMid,
+                    }}>{label}</button>
+                );
+              })}
+              {ownerFilter !== null && (
+                <button className="mono pill-btn" onClick={() => setOwnerFilter(null)} style={{
+                  padding: "4px 9px", borderRadius: 20, fontSize: "0.64rem",
+                  border: `1px solid ${T.border}`, background: "transparent", color: T.textDim,
+                }}>✕ clear</button>
+              )}
+            </div>
+
             {/* Issuer filter pills */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14, alignItems: "center" }}>
+              <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.04em", marginRight: 2 }}>ISSUER:</span>
               {[null, ...ISSUERS].map(issuer => {
                 const active = issuerFilter === issuer;
                 return (
@@ -596,6 +640,12 @@ export default function App() {
                   }}>{issuer || "All"}</button>
                 );
               })}
+              {issuerFilter && (
+                <button className="mono pill-btn" onClick={() => setIssuerFilter(null)} style={{
+                  padding: "4px 9px", borderRadius: 20, fontSize: "0.64rem",
+                  border: `1px solid ${T.border}`, background: "transparent", color: T.textDim,
+                }}>✕ clear</button>
+              )}
             </div>
 
             {/* Card list */}
@@ -750,5 +800,6 @@ export default function App() {
         )}
       </div>
     </div>
+  );
   );
 }
