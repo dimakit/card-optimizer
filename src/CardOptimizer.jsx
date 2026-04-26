@@ -188,8 +188,14 @@ function MultiplierLine({ card, advancedMode }) {
 
   // Show categories that beat the "other" floor
   const floor = card.multipliers.other ?? 1;
-  const highlights = cats
-    .map(cat => ({ cat, mult: effectiveMult(card, cat.key) }))
+  // Include whole_foods as a virtual display category if it differs from groceries
+  const extraCats = [];
+  if ((card.multipliers.whole_foods ?? 1) !== (card.multipliers.groceries ?? 1) &&
+      (card.multipliers.whole_foods ?? 1) > floor) {
+    extraCats.push({ key: "whole_foods", label: "Whole Foods", icon: "🥦" });
+  }
+  const highlights = [...cats, ...extraCats]
+    .map(cat => ({ cat, mult: cat.key === "whole_foods" ? (card.multipliers.whole_foods ?? 1) : effectiveMult(card, cat.key) }))
     .filter(x => x.mult > floor || (floor > 1 && x.cat.key === "other"))
     .sort((a, b) => b.mult - a.mult);
 
@@ -237,6 +243,10 @@ function effectiveStatus(card) {
 
 function effectiveMult(card, catKey) {
   const today = new Date();
+  // Special keys that live directly in multipliers but not in CATEGORIES
+  if (catKey === "whole_foods" || catKey === "groceries_big_box") {
+    return card.multipliers[catKey] ?? card.multipliers.other ?? 1;
+  }
   let catMult = card.multipliers[catKey] ?? 1;
   const otherMult = card.multipliers.other ?? 1;
 
@@ -1165,11 +1175,15 @@ export default function App() {
                         const best = getBestCard(wallet.cards, selectedCategory, mode, pointsPref);
                         if (!best) return null;
                         const portalNote = selectedCategory === "travel" && best.card.multipliers.travel_portal > best.card.multipliers.travel;
-                        // Sub-result for groceries big box
+                        // Sub-results for groceries
                         const bigBoxBest = selectedCategory === "groceries"
                           ? getBestCard(wallet.cards, "groceries_big_box", mode, pointsPref)
                           : null;
                         const bigBoxDiffers = bigBoxBest && bigBoxBest.card.id !== best.card.id;
+                        const wholeFoodsBest = selectedCategory === "groceries"
+                          ? getBestCard(wallet.cards, "whole_foods", mode, pointsPref)
+                          : null;
+                        const wholeFoodsDiffers = wholeFoodsBest && wholeFoodsBest.card.id !== best.card.id;
                         // Sub-result for travel portal
                         const portalBest = selectedCategory === "travel"
                           ? getBestCard(wallet.cards, "travel_portal", mode, pointsPref)
@@ -1206,6 +1220,17 @@ export default function App() {
                                   <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>Target / Walmart / Wholesale</div>
                                   <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{bigBoxBest.card.name}</div>
                                   <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{bigBoxBest.mult}× · {bigBoxBest.pct.toFixed(1)}%</div>
+                                </div>
+                              </div>
+                            )}
+                            {/* Whole Foods sub-result for groceries */}
+                            {selectedCategory === "groceries" && wholeFoodsBest && wholeFoodsDiffers && (
+                              <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px", background: T.bg, display: "flex", alignItems: "center", gap: 12 }}>
+                                <CardBadge card={wholeFoodsBest.card} width={72} height={45} isSelected />
+                                <div style={{ flex: 1 }}>
+                                  <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>Whole Foods</div>
+                                  <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{wholeFoodsBest.card.name}</div>
+                                  <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{wholeFoodsBest.mult}× · {wholeFoodsBest.pct.toFixed(1)}%</div>
                                 </div>
                               </div>
                             )}
