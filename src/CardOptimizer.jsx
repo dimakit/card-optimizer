@@ -286,6 +286,24 @@ function computeBreadth(card, mode) {
   }, 0);
 }
 
+// Returns true if a card's bonus for a category is permanent (not rotating/timed)
+function isPermanentBonus(card, catKey) {
+  if (!card.rotatingCategories || !card.rotatingCategories.includes(catKey)) {
+    // Check timedBonuses too
+    if (card.timedBonuses) {
+      const today = new Date();
+      return !card.timedBonuses.some(tb => {
+        if (!tb.categories.includes(catKey)) return false;
+        const end = new Date(tb.end);
+        end.setHours(23, 59, 59);
+        return today <= end; // still active = timed = not permanent
+      });
+    }
+    return true;
+  }
+  return false; // rotating category = not permanent
+}
+
 function getBestCard(cards, category, mode, pointsPref) {
   const eligible = cards.filter(c => effectiveStatus(c) !== "draft");
   if (!eligible.length) return null;
@@ -297,12 +315,31 @@ function getBestCard(cards, category, mode, pointsPref) {
   const PREF_THRESHOLD = 0.005; // 0.5% — within this margin, prefer chosen currency
   scored.sort((a, b) => {
     const diff = Math.abs(a.value - b.value);
-    if (diff <= PREF_THRESHOLD && pointsPref && pointsPref !== "none") {
+    if (diff > 0.00001) return b.value - a.value; // clear winner by score
+
+    // Tied — apply tiebreakers in order:
+
+    // 1. Permanent bonus beats rotating/timed bonus
+    const aPermament = isPermanentBonus(a.card, category) ? 1 : 0;
+    const bPermanent = isPermanentBonus(b.card, category) ? 1 : 0;
+    if (aPermament !== bPermanent) return bPermanent - aPermament;
+
+    // 2. Amazon category: prefer Amazon Prime card
+    if (category === "amazon" || category === "whole_foods") {
+      const aAmazon = a.card.id === "chase_prime" ? 1 : 0;
+      const bAmazon = b.card.id === "chase_prime" ? 1 : 0;
+      if (aAmazon !== bAmazon) return bAmazon - aAmazon;
+    }
+
+    // 3. Points preference (soft tiebreaker)
+    if (pointsPref && pointsPref !== "none") {
       const aMatch = a.card.currency === pointsPref ? 1 : 0;
       const bMatch = b.card.currency === pointsPref ? 1 : 0;
       if (aMatch !== bMatch) return bMatch - aMatch;
     }
-    return diff > 0.00001 ? b.value - a.value : b.breadth - a.breadth;
+
+    // 4. Breadth (most versatile card)
+    return b.breadth - a.breadth;
   });
   return scored[0];
 }
