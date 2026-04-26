@@ -31,14 +31,13 @@ const CATEGORIES_ADVANCED = [
   { key: "streaming",       label: "Streaming",            icon: "📺" },
   { key: "online",          label: "Online Retail",        icon: "🛍️" },
   { key: "homeimprove",     label: "Home Improvement",     icon: "🔨" },
-  { key: "travel_portal",   label: "Travel (Portal)",      icon: "🌐" },
+
   { key: "hotels_direct",   label: "Hotels (Direct)",      icon: "🏨" },
   { key: "airlines_direct", label: "Airlines (Direct)",    icon: "🛫" },
   { key: "lyft",            label: "Lyft",                 icon: "🚗" },
   { key: "uber",            label: "Uber",                 icon: "🚕" },
   { key: "peloton",         label: "Peloton",              icon: "🚴" },
   { key: "entertainment",   label: "Entertainment",        icon: "🎟️" },
-  { key: "groceries_big_box", label: "Groceries (Target/Walmart/Wholesale)", icon: "🏪" },
 ];
 
 const ISSUER_PALETTE = {
@@ -1139,14 +1138,26 @@ export default function App() {
                         const best = getBestCard(wallet.cards, selectedCategory, mode, pointsPref);
                         if (!best) return null;
                         const portalNote = selectedCategory === "travel" && best.card.multipliers.travel_portal > best.card.multipliers.travel;
+                        // Sub-result for groceries big box
+                        const bigBoxBest = selectedCategory === "groceries"
+                          ? getBestCard(wallet.cards, "groceries_big_box", mode, pointsPref)
+                          : null;
+                        const bigBoxDiffers = bigBoxBest && bigBoxBest.card.id !== best.card.id;
+                        // Sub-result for travel portal
+                        const portalBest = selectedCategory === "travel"
+                          ? getBestCard(wallet.cards, "travel_portal", mode, pointsPref)
+                          : null;
+                        const portalDiffers = portalBest && portalBest.card.id !== best.card.id;
                         return (
                           <div key={wallet.label} style={{ flex: 1, borderRadius: 12, overflow: "hidden", border: `1px solid ${T.border}`, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                             {/* Wallet label */}
                             <div style={{ background: wallet.color, color: T.accentText, padding: "8px 16px", fontFamily: "monospace", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                               {wallet.label}
                             </div>
-                            {/* Card */}
+                            {/* Primary card */}
                             <div style={{ padding: "20px 16px", background: T.surface, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
+                              {selectedCategory === "groceries" && <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase" }}>Supermarkets</div>}
+                              {selectedCategory === "travel" && <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase" }}>Direct with airline / hotel</div>}
                               <CardBadge card={best.card} width={160} height={101} isSelected />
                               <div>
                                 <div className="serif" style={{ fontSize: "1.1rem", color: T.text, marginBottom: 4 }}>{best.card.name}</div>
@@ -1157,13 +1168,31 @@ export default function App() {
                                 <div className="mono" style={{ fontSize: "0.65rem", color: T.textDim, marginTop: 4 }}>
                                   {best.mult}× {best.card.currency} · {(CURRENCY_VALUES[best.card.currency][mode] * 100).toFixed(1)}¢/pt
                                 </div>
-                                {portalNote && (
-                                  <div className="mono" style={{ fontSize: "0.63rem", color: "#2e7d32", marginTop: 6 }}>
-                                    💡 {best.card.multipliers.travel_portal}× ({(best.card.multipliers.travel_portal * CURRENCY_VALUES[best.card.currency][mode] * 100).toFixed(1)}%) if booked via portal
-                                  </div>
-                                )}
+
                               </div>
                             </div>
+                            {/* Big box sub-result for groceries */}
+                            {selectedCategory === "groceries" && bigBoxBest && (
+                              <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px", background: T.bg, display: "flex", alignItems: "center", gap: 12 }}>
+                                <CardBadge card={bigBoxBest.card} width={72} height={45} isSelected={bigBoxDiffers} />
+                                <div style={{ flex: 1 }}>
+                                  <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>Target / Walmart / Wholesale</div>
+                                  <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{bigBoxBest.card.name}</div>
+                                  <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{bigBoxBest.mult}× · {bigBoxBest.pct.toFixed(1)}%</div>
+                                </div>
+                              </div>
+                            )}
+                            {/* Portal sub-result for travel */}
+                            {selectedCategory === "travel" && portalBest && (
+                              <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px", background: T.bg, display: "flex", alignItems: "center", gap: 12 }}>
+                                <CardBadge card={portalBest.card} width={72} height={45} isSelected={portalDiffers} />
+                                <div style={{ flex: 1 }}>
+                                  <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>Via Portal (Chase / Amex / Cap One)</div>
+                                  <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{portalBest.card.name}</div>
+                                  <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{portalBest.mult}× · {portalBest.pct.toFixed(1)}%</div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
