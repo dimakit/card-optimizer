@@ -457,21 +457,24 @@
     "shortName": "Custom Cash",
     "issuer": "Citi",
     "currency": "CASHBACK",
-    "status": "draft",
+    "status": "supported",
     "multipliers": {
-      "dining": 5,
-      "groceries": 5,
-      "gas": 5,
-      "travel": 5,
-      "transit": 5,
-      "streaming": 5,
-      "online": 5,
-      "drugstores": 5,
+      "dining": 1,
+      "groceries": 1,
+      "gas": 1,
+      "travel": 1,
+      "transit": 1,
+      "streaming": 1,
+      "online": 1,
+      "drugstores": 1,
       "other": 1,
       "homeimprove": 1,
       "amazon": 1,
-      "travel_portal": 5
-    }
+      "travel_portal": 1
+    },
+    "configurable": "single",
+    "configurableRate": 5,
+    "configurableNote": "5\u00d7 on your top category \u00b7 1\u00d7 everything else"
   },
   {
     "id": "discover_it",
@@ -512,7 +515,7 @@
     "shortName": "U.S. Bank Cash+",
     "issuer": "U.S. Bank",
     "currency": "CASHBACK",
-    "status": "draft",
+    "status": "supported",
     "multipliers": {
       "dining": 1,
       "groceries": 1,
@@ -526,6 +529,9 @@
       "homeimprove": 1,
       "amazon": 1,
       "travel_portal": 1
-    }
+    },
+    "configurable": "double",
+    "configurableRate": 5,
+    "configurableNote": "5\u00d7 on 2 chosen categories \u00b7 1\u00d7 everything else"
   }
 ]
