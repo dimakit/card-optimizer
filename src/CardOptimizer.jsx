@@ -45,8 +45,8 @@ const ISSUER_PALETTE = {
 // Format: names are base64'd, ownership is compact card index + owner char
 // e.g. "W1:Alice,W2:Bob|0m,3b,5s" (card index:owner m=me s=spouse b=both)
 
-function encodeProfile(ownership, names, mode) {
-  const cardIds = CARDS.map(c => c.id);
+function encodeProfile(ownership, names, mode, cards) {
+  const cardIds = (cards || []).map(c => c.id);
   const ownerChar = { me: "m", spouse: "s", both: "b" };
   const entries = Object.entries(ownership)
     .map(([id, own]) => {
@@ -61,7 +61,7 @@ function encodeProfile(ownership, names, mode) {
   return `${n1}.${n2}.${m}.${entries}`;
 }
 
-function decodeProfile(code) {
+function decodeProfile(code, cardsList) {
   try {
     const raw = code.trim();
     const stripped = raw.includes("_") ? raw.slice(raw.indexOf("_") + 1) : raw;
@@ -74,7 +74,7 @@ function decodeProfile(code) {
       spouse: decodeURIComponent(atob(n2 + "==".slice(0, (4 - n2.length % 4) % 4))),
     };
     const mode = m === "t" ? "travel" : "cashback";
-    const cardIds = CARDS.map(c => c.id);
+    const cardIds = (cardsList || []).map(c => c.id);
     const charOwner = { m: "me", s: "spouse", b: "both" };
     const ownership = {};
     if (entries) {
@@ -228,41 +228,12 @@ function ownerCards(ownership, who, cards) {
 
 // ─── Owner toggle button ───────────────────────────────────────────────────────
 
-function OwnerToggle({ cardId, ownership, setOwnership }) {
-  const current = ownership[cardId] || null;
-  const cycle = { null: "me", me: "spouse", spouse: "both", both: null };
-  const next = cycle[current];
-  const labels = { me: "ME", spouse: "SPOUSE", both: "BOTH", null: null };
 
-  return (
-    <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-      {["me", "spouse", "both"].map(who => {
-        const active = current === who || current === "both" && who !== "both" ? (who === "me" || who === "spouse") && current === "both" ? true : current === who : false;
-        // Simpler: highlight if this owner is included
-        const lit = current === who || (current === "both" && (who === "me" || who === "spouse"));
-        return (
-          <button
-            key={who}
-            onClick={e => { e.stopPropagation(); setOwnership(prev => ({ ...prev, [cardId]: next })); }}
-            style={{
-              padding: "3px 8px", borderRadius: 4, border: `1px solid ${lit ? T.accent : T.border}`,
-              background: lit ? T.accent : "transparent", color: lit ? T.accentText : T.textDim,
-              fontSize: "0.58rem", fontFamily: "monospace", letterSpacing: "0.04em",
-              cursor: "pointer", fontWeight: 600, transition: "all 0.1s",
-            }}
-          >
-            {who === "me" ? "ME" : who === "spouse" ? "SP" : "BOTH"}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 // ─── Results column ────────────────────────────────────────────────────────────
 
 function ResultsColumn({ cards, label, mode, color }) {
-  if (cards.filter(c => c.status !== "draft").length === 0) return null;
+  if (cards.filter(c => effectiveStatus(c) !== "draft").length === 0) return null;
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{
@@ -274,7 +245,7 @@ function ResultsColumn({ cards, label, mode, color }) {
         {CATEGORIES.map((cat, i) => {
           const best = getBestCard(cards, cat.key, mode);
           if (!best) return null;
-          const allScored = cards.filter(c => c.status !== "draft").map(card => {
+          const allScored = cards.filter(c => effectiveStatus(c) !== "draft").map(card => {
             const mult = card.multipliers[cat.key] ?? card.multipliers.other;
             return { card, pct: mult * CURRENCY_VALUES[card.currency][mode] * 100 };
           }).sort((a, b) => b.pct - a.pct);
@@ -366,7 +337,7 @@ export default function App() {
     try { localStorage.setItem("cp_label_v1", profileLabel); } catch {}
   }, [profileLabel]);
 
-  const rawCode = encodeProfile(ownership, names, mode);
+  const rawCode = encodeProfile(ownership, names, mode, CARDS);
   const profileCode = profileLabel.trim() ? `${profileLabel.trim().replace(/\s+/g, "_")}_${rawCode}` : rawCode;
 
   const handleCopyCode = () => {
@@ -377,7 +348,7 @@ export default function App() {
   };
 
   const handleLoadCode = () => {
-    const result = decodeProfile(loadCode);
+    const result = decodeProfile(loadCode, CARDS);
     if (!result) {
       setLoadError("Invalid code — please check and try again.");
       return;
@@ -433,14 +404,13 @@ export default function App() {
 
   const isSingleWallet = meCards.length > 0 && spouseCards.length === 0;
 
-  return (
-    if (cardsLoading) return (
-      <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span className="mono" style={{ color: "#888", fontSize: "0.8rem", letterSpacing: "0.08em" }}>LOADING...</span>
-      </div>
-    );
+  if (cardsLoading) return (
+    <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <span className="mono" style={{ color: "#888", fontSize: "0.8rem", letterSpacing: "0.08em" }}>LOADING...</span>
+    </div>
+  );
 
-    return (
+  return (
     <div style={{ minHeight: "100vh", background: T.bg, color: T.text, fontFamily: "Georgia,serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500;600&display=swap');
