@@ -366,9 +366,9 @@
     "shortName": "Discover it",
     "issuer": "Discover",
     "currency": "CASHBACK",
-    "status": "draft",
+    "status": "supported",
     "multipliers": {
-      "dining": 1,
+      "dining": 5,
       "groceries": 1,
       "gas": 1,
       "travel": 1,
@@ -377,7 +377,17 @@
       "online": 1,
       "drugstores": 1,
       "other": 1
-    }
+    },
+    "rotatingPeriod": {
+      "start": "2026-04-01",
+      "end": "2026-06-30"
+    },
+    "rotatingNote": "5\u00d7 dining \u00b7 Active Apr\u2013Jun 2026",
+    "rotatingCategories": [
+      "dining"
+    ],
+    "_lastUpdated": "2026-04-26",
+    "_updatedBy": "Q2 2026: Restaurants & Home Improvement Stores"
   },
   {
     "id": "usbank_cash_plus",
