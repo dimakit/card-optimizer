@@ -60,6 +60,56 @@ const ISSUER_PALETTE = {
   "Discover":        ["#7c2d12", "#c2410c"],
 };
 
+
+// ─── Profile Code encode/decode ───────────────────────────────────────────────
+// Format: names are base64'd, ownership is compact card index + owner char
+// e.g. "W1:Alice,W2:Bob|0m,3b,5s" (card index:owner m=me s=spouse b=both)
+
+function encodeProfile(ownership, names, mode) {
+  const cardIds = CARDS.map(c => c.id);
+  const ownerChar = { me: "m", spouse: "s", both: "b" };
+  const entries = Object.entries(ownership)
+    .map(([id, own]) => {
+      const idx = cardIds.indexOf(id);
+      return idx >= 0 ? `${idx}${ownerChar[own]}` : null;
+    })
+    .filter(Boolean)
+    .join(",");
+  const n1 = btoa(encodeURIComponent(names.me)).replace(/=/g, "");
+  const n2 = btoa(encodeURIComponent(names.spouse)).replace(/=/g, "");
+  const m = mode === "travel" ? "t" : "c";
+  return `${n1}.${n2}.${m}.${entries}`;
+}
+
+function decodeProfile(code) {
+  try {
+    const raw = code.trim();
+    const stripped = raw.includes("_") ? raw.slice(raw.indexOf("_") + 1) : raw;
+    const parts = stripped.split(".");
+    if (parts.length < 4) return null;
+    const [n1, n2, m, ...rest] = parts;
+    const entries = rest.join("."); // in case names had dots somehow
+    const names = {
+      me: decodeURIComponent(atob(n1 + "==".slice(0, (4 - n1.length % 4) % 4))),
+      spouse: decodeURIComponent(atob(n2 + "==".slice(0, (4 - n2.length % 4) % 4))),
+    };
+    const mode = m === "t" ? "travel" : "cashback";
+    const cardIds = CARDS.map(c => c.id);
+    const charOwner = { m: "me", s: "spouse", b: "both" };
+    const ownership = {};
+    if (entries) {
+      entries.split(",").forEach(entry => {
+        const idx = parseInt(entry.slice(0, -1));
+        const own = charOwner[entry.slice(-1)];
+        if (!isNaN(idx) && own && cardIds[idx]) ownership[cardIds[idx]] = own;
+      });
+    }
+    return { ownership, names, mode };
+  } catch {
+    return null;
+  }
+}
+
 // ─── Theme ────────────────────────────────────────────────────────────────────
 const T = {
   bg:             "#f7f7f7",
@@ -299,6 +349,42 @@ export default function App() {
   });
   const [search, setSearch] = useState("");
   const [issuerFilter, setIssuerFilter] = useState(null);
+  const [showShare, setShowShare] = useState(false);
+  const [loadCode, setLoadCode] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [copyDone, setCopyDone] = useState(false);
+  const [profileLabel, setProfileLabel] = useState(() => {
+    try { return localStorage.getItem("cp_label_v1") || ""; } catch { return ""; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem("cp_label_v1", profileLabel); } catch {}
+  }, [profileLabel]);
+
+  const rawCode = encodeProfile(ownership, names, mode);
+  const profileCode = profileLabel.trim() ? `${profileLabel.trim().replace(/\s+/g, "_")}_${rawCode}` : rawCode;
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(profileCode).then(() => {
+      setCopyDone(true);
+      setTimeout(() => setCopyDone(false), 2000);
+    });
+  };
+
+  const handleLoadCode = () => {
+    const result = decodeProfile(loadCode);
+    if (!result) {
+      setLoadError("Invalid code — please check and try again.");
+      return;
+    }
+    setOwnership(result.ownership);
+    setNames(result.names);
+    setMode(result.mode);
+    setLoadCode("");
+    setLoadError("");
+    setShowShare(false);
+    setView(Object.keys(result.ownership).length > 0 ? "results" : "pick");
+  };
 
   useEffect(() => {
     try { localStorage.setItem("cp_ownership_v2", JSON.stringify(ownership)); } catch {}
@@ -360,7 +446,14 @@ export default function App() {
       {/* ── Top bar ── */}
       <div style={{ borderBottom: `1px solid ${T.border}`, padding: "0 20px", position: "sticky", top: 0, zIndex: 10, background: T.topbar, backdropFilter: "blur(10px)", boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
         <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
-          <span className="serif" style={{ fontSize: "1.18rem", color: T.text }}>CardPicker</span>
+          <span className="serif" style={{ fontSize: "1.18rem", color: T.text }}>CardOptimizer</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button className="mono pill-btn" onClick={() => setShowShare(s => !s)} style={{
+              padding: "6px 12px", borderRadius: 6, fontSize: "0.66rem", fontWeight: 500,
+              letterSpacing: "0.05em", border: `1px solid ${T.border}`,
+              background: showShare ? T.accent : T.surface,
+              color: showShare ? T.accentText : T.textMid,
+            }}>💾 Save / Load</button>
           <div style={{ display: "flex", gap: 0, background: T.surfaceAlt, borderRadius: 7, padding: 3, border: `1px solid ${T.border}` }}>
             {["cashback", "travel"].map(m => (
               <button key={m} className="mono pill-btn" onClick={() => setMode(m)} style={{
@@ -373,7 +466,60 @@ export default function App() {
               </button>
             ))}
           </div>
+          </div>
         </div>
+
+        {/* Save/Load panel */}
+        {showShare && (
+          <div style={{ maxWidth: 860, margin: "0 auto", padding: "12px 0 14px" }}>
+            <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <div style={{ marginBottom: 10 }}>
+                  <p className="mono" style={{ fontSize: "0.63rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 6 }}>Label (optional)</p>
+                  <input
+                    value={profileLabel}
+                    onChange={e => setProfileLabel(e.target.value)}
+                    placeholder="e.g. Smith"
+                    className="mono"
+                    style={{ padding: "7px 10px", borderRadius: 6, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: "0.72rem", width: 180 }}
+                  />
+                  <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim, marginLeft: 8 }}>Prepended to your code so you can identify it later</span>
+                </div>
+                <p className="mono" style={{ fontSize: "0.63rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 8 }}>Your profile code</p>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <input readOnly value={profileCode} className="mono"
+                    style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, background: T.bg, color: T.text, fontSize: "0.68rem", fontFamily: "monospace" }}
+                    onFocus={e => e.target.select()}
+                  />
+                  <button className="mono pill-btn" onClick={handleCopyCode} style={{
+                    padding: "8px 14px", borderRadius: 6, background: copyDone ? "#66bb6a" : T.accent,
+                    color: T.accentText, fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.04em", flexShrink: 0,
+                    border: "none",
+                  }}>{copyDone ? "✓ Copied!" : "Copy"}</button>
+                </div>
+                <p className="mono" style={{ fontSize: "0.6rem", color: T.textDim, marginTop: 6 }}>Save this code. Paste it on any device to restore your wallet.</p>
+              </div>
+              <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
+                <p className="mono" style={{ fontSize: "0.63rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 8 }}>Load a profile code</p>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <input
+                    value={loadCode}
+                    onChange={e => { setLoadCode(e.target.value); setLoadError(""); }}
+                    placeholder="Paste your code here..."
+                    className="mono"
+                    style={{ flex: 1, padding: "8px 10px", borderRadius: 6, border: `1px solid ${loadError ? "#ef4444" : T.border}`, background: T.bg, color: T.text, fontSize: "0.68rem" }}
+                    onKeyDown={e => e.key === "Enter" && handleLoadCode()}
+                  />
+                  <button className="mono pill-btn" onClick={handleLoadCode} style={{
+                    padding: "8px 14px", borderRadius: 6, background: T.accent, color: T.accentText,
+                    fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.04em", flexShrink: 0, border: "none",
+                  }}>Load</button>
+                </div>
+                {loadError && <p className="mono" style={{ fontSize: "0.6rem", color: "#ef4444", marginTop: 5 }}>{loadError}</p>}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div style={{ maxWidth: 860, margin: "0 auto", display: "flex" }}>
