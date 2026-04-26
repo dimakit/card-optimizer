@@ -23,7 +23,8 @@ const CATEGORIES = [
   { key: "streaming",  label: "Streaming",       icon: "📺" },
   { key: "online",     label: "Online",          icon: "🛍️" },
   { key: "drugstores", label: "Drugstores",      icon: "💊" },
-  { key: "other",      label: "Everything Else", icon: "💳" },
+  { key: "homeimprove", label: "Home Improvement", icon: "🔨" },
+  { key: "other",       label: "Everything Else",  icon: "💳" },
 ];
 
 const ISSUER_PALETTE = {
@@ -205,7 +206,7 @@ function computeBreadth(card, mode) {
   }, 0);
 }
 
-function getBestCard(cards, category, mode) {
+function getBestCard(cards, category, mode, pointsPref) {
   const eligible = cards.filter(c => effectiveStatus(c) !== "draft");
   if (!eligible.length) return null;
   const scored = eligible.map(card => {
@@ -213,7 +214,16 @@ function getBestCard(cards, category, mode) {
     const cv = CURRENCY_VALUES[card.currency][mode];
     return { card, mult, value: mult * cv, pct: mult * cv * 100, breadth: computeBreadth(card, mode) };
   });
-  scored.sort((a, b) => Math.abs(a.value - b.value) > 0.00001 ? b.value - a.value : b.breadth - a.breadth);
+  const PREF_THRESHOLD = 0.005; // 0.5% — within this margin, prefer chosen currency
+  scored.sort((a, b) => {
+    const diff = Math.abs(a.value - b.value);
+    if (diff <= PREF_THRESHOLD && pointsPref && pointsPref !== "none") {
+      const aMatch = a.card.currency === pointsPref ? 1 : 0;
+      const bMatch = b.card.currency === pointsPref ? 1 : 0;
+      if (aMatch !== bMatch) return bMatch - aMatch;
+    }
+    return diff > 0.00001 ? b.value - a.value : b.breadth - a.breadth;
+  });
   return scored[0];
 }
 
@@ -243,7 +253,7 @@ function ResultsColumn({ cards, label, mode, color }) {
       }}>{label}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
         {CATEGORIES.map((cat, i) => {
-          const best = getBestCard(cards, cat.key, mode);
+          const best = getBestCard(cards, cat.key, mode, pointsPref);
           if (!best) return null;
           const allScored = cards.filter(c => effectiveStatus(c) !== "draft").map(card => {
             const mult = card.multipliers[cat.key] ?? card.multipliers.other;
@@ -316,6 +326,14 @@ export default function App() {
     try { return localStorage.getItem("cp_mode_v1") || "cashback"; }
     catch { return "cashback"; }
   });
+  const [pointsPref, setPointsPref] = useState(() => {
+    try { return localStorage.getItem("cp_points_pref_v1") || "none"; } catch { return "none"; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem("cp_points_pref_v1", pointsPref); } catch {}
+  }, [pointsPref]);
+
   const [view, setView] = useState(() => {
     try {
       const o = JSON.parse(localStorage.getItem("cp_ownership_v2") || "{}");
@@ -445,6 +463,21 @@ export default function App() {
               background: showShare ? T.accent : T.surface,
               color: showShare ? T.accentText : T.textMid,
             }}>💾 Save / Load</button>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+              <span className="mono" style={{ fontSize: "0.52rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 2 }}>Points Pref.</span>
+              <select value={pointsPref} onChange={e => setPointsPref(e.target.value)} className="mono" style={{
+                padding: "4px 7px", borderRadius: 6, border: `1px solid ${pointsPref !== "none" ? T.selectedBorder : T.border}`,
+                background: pointsPref !== "none" ? T.selectedBg : T.surface,
+                color: T.text, fontSize: "0.66rem", cursor: "pointer", outline: "none",
+              }}>
+                <option value="none">No preference</option>
+                <option value="UR">UR (Chase)</option>
+                <option value="MR">MR (Amex)</option>
+                <option value="CAPONE">Miles (Capital One)</option>
+                <option value="TYP">TYP (Citi)</option>
+                <option value="CASHBACK">Cash Back</option>
+              </select>
+            </div>
           <div style={{ display: "flex", gap: 0, background: T.surfaceAlt, borderRadius: 7, padding: 3, border: `1px solid ${T.border}` }}>
             {["cashback", "travel"].map(m => (
               <button key={m} className="mono pill-btn" onClick={() => setMode(m)} style={{
@@ -574,31 +607,23 @@ export default function App() {
                 style={{ width: "100%", padding: "9px 12px 9px 30px", background: T.surface, border: `1px solid ${T.border}`, borderRadius: 7, color: T.text, fontSize: "0.8rem" }} />
             </div>
 
-            {/* Owner filter pills */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8, alignItems: "center" }}>
-              <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.04em", marginRight: 2 }}>WALLET:</span>
-              {[
-                { val: null,     label: "All" },
-                { val: "both",   label: "Both" },
-                { val: "me",     label: names.me },
-                { val: "spouse", label: names.spouse },
-                { val: "none",   label: "Unassigned" },
-              ].map(({ val, label }) => {
-                const active = ownerFilter === val;
-                return (
-                  <button key={val ?? "all"} className="mono pill-btn"
-                    onClick={() => setOwnerFilter(active ? null : val)}
-                    style={{
-                      padding: "4px 11px", borderRadius: 20, fontSize: "0.66rem", fontWeight: 500, letterSpacing: "0.04em",
-                      border: `1px solid ${active ? T.accent : T.border}`,
-                      background: active ? T.accent : "transparent",
-                      color: active ? T.accentText : T.textMid,
-                    }}>{label}</button>
-                );
-              })}
-              {ownerFilter !== null && (
+            {/* Owner filter dropdown */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.04em" }}>SHOW:</span>
+              <select value={ownerFilter ?? ""} onChange={e => setOwnerFilter(e.target.value || null)} className="mono" style={{
+                padding: "5px 8px", borderRadius: 6, border: `1px solid ${ownerFilter ? T.selectedBorder : T.border}`,
+                background: ownerFilter ? T.selectedBg : T.surface,
+                color: T.text, fontSize: "0.68rem", cursor: "pointer", outline: "none",
+              }}>
+                <option value="">All cards</option>
+                <option value="both">Both wallets</option>
+                <option value="me">{names.me}</option>
+                <option value="spouse">{names.spouse}</option>
+                <option value="none">Unassigned</option>
+              </select>
+              {ownerFilter && (
                 <button className="mono pill-btn" onClick={() => setOwnerFilter(null)} style={{
-                  padding: "4px 9px", borderRadius: 20, fontSize: "0.64rem",
+                  padding: "4px 8px", borderRadius: 5, fontSize: "0.62rem",
                   border: `1px solid ${T.border}`, background: "transparent", color: T.textDim,
                 }}>✕ clear</button>
               )}
@@ -731,7 +756,7 @@ export default function App() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                   {CATEGORIES.map((cat, i) => {
-                    const best = getBestCard(meCards, cat.key, mode);
+                    const best = getBestCard(meCards, cat.key, mode, pointsPref);
                     if (!best) return null;
                     const allScored = meCards.filter(c => c.status !== "draft").map(card => {
                       const mult = card.multipliers[cat.key] ?? card.multipliers.other;
