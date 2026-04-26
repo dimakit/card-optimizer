@@ -14,19 +14,31 @@ const CARDS_PLACEHOLDER = []; // loaded from /cards.json
 
 
 
-const CATEGORIES = [
-  { key: "dining",     label: "Dining",          icon: "🍽️" },
-  { key: "groceries",  label: "Groceries",       icon: "🛒" },
-  { key: "gas",        label: "Gas",             icon: "⛽" },
-  { key: "travel",     label: "Travel",          icon: "✈️" },
-  { key: "transit",    label: "Transit",         icon: "🚇" },
-  { key: "streaming",  label: "Streaming",       icon: "📺" },
-  { key: "online",     label: "Online",          icon: "🛍️" },
-  { key: "drugstores", label: "Drugstores",      icon: "💊" },
-  { key: "homeimprove",   label: "Home Improvement", icon: "🔨" },
-  { key: "amazon",        label: "Amazon",            icon: "📦" },
-  { key: "travel_portal", label: "Travel (Portal)",   icon: "🌐" },
-  { key: "other",         label: "Everything Else",   icon: "💳" },
+// Light mode categories — shown always
+const CATEGORIES_LIGHT = [
+  { key: "dining",      label: "Dining",           icon: "🍽️" },
+  { key: "groceries",   label: "Groceries",        icon: "🛒" },
+  { key: "gas",         label: "Gas",              icon: "⛽" },
+  { key: "travel",      label: "Travel",           icon: "✈️" },
+  { key: "transit",     label: "Transit",          icon: "🚇" },
+  { key: "drugstores",  label: "Drugstores",       icon: "💊" },
+  { key: "amazon",      label: "Amazon",           icon: "📦" },
+  { key: "other",       label: "Everything Else",  icon: "💳" },
+];
+
+// Advanced-only categories — shown in advanced mode
+const CATEGORIES_ADVANCED = [
+  { key: "streaming",       label: "Streaming",            icon: "📺" },
+  { key: "online",          label: "Online Retail",        icon: "🛍️" },
+  { key: "homeimprove",     label: "Home Improvement",     icon: "🔨" },
+  { key: "travel_portal",   label: "Travel (Portal)",      icon: "🌐" },
+  { key: "hotels_direct",   label: "Hotels (Direct)",      icon: "🏨" },
+  { key: "airlines_direct", label: "Airlines (Direct)",    icon: "🛫" },
+  { key: "lyft",            label: "Lyft",                 icon: "🚗" },
+  { key: "uber",            label: "Uber",                 icon: "🚕" },
+  { key: "peloton",         label: "Peloton",              icon: "🚴" },
+  { key: "entertainment",   label: "Entertainment",        icon: "🎟️" },
+  { key: "groceries_big_box", label: "Groceries (Target/Walmart/Wholesale)", icon: "🏪" },
 ];
 
 const ISSUER_PALETTE = {
@@ -161,8 +173,9 @@ function CardBadge({ card, width = 76, height = 48, isSelected = false }) {
 
 // ─── Multiplier line ───────────────────────────────────────────────────────────
 
-function MultiplierLine({ card }) {
-  const allMults = CATEGORIES.map(cat => effectiveMult(card, cat.key));
+function MultiplierLine({ card, advancedMode }) {
+  const cats = advancedMode ? [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED] : CATEGORIES_LIGHT;
+  const allMults = cats.map(cat => effectiveMult(card, cat.key));
   const allSame = allMults.every(m => m === allMults[0]);
 
   // If all categories earn the same rate, just say "Nx on everything"
@@ -178,7 +191,7 @@ function MultiplierLine({ card }) {
 
   // Show categories that beat the "other" floor
   const floor = card.multipliers.other ?? 1;
-  const highlights = CATEGORIES
+  const highlights = cats
     .map(cat => ({ cat, mult: effectiveMult(card, cat.key) }))
     .filter(x => x.mult > floor || (floor > 1 && x.cat.key === "other"))
     .sort((a, b) => b.mult - a.mult);
@@ -226,14 +239,42 @@ function effectiveStatus(card) {
 // ─── Scoring ──────────────────────────────────────────────────────────────────
 
 function effectiveMult(card, catKey) {
-  const catMult = card.multipliers[catKey] ?? 1;
+  const today = new Date();
+  let catMult = card.multipliers[catKey] ?? 1;
   const otherMult = card.multipliers.other ?? 1;
-  // "other" is a floor — if a category has no specific bonus, the flat rate applies
+
+  // Check timedBonuses — if expired, fall back to base multiplier for that category
+  if (card.timedBonuses) {
+    card.timedBonuses.forEach(tb => {
+      if (tb.categories.includes(catKey)) {
+        const end = new Date(tb.end);
+        end.setHours(23, 59, 59);
+        if (today > end) {
+          // Timed bonus expired — use base (1x) for that category
+          catMult = 1;
+        }
+      }
+    });
+  }
+
   return catKey === "other" ? otherMult : Math.max(catMult, otherMult);
 }
 
+// Get active timed bonus notes for a card (not expired)
+function activeTimedNotes(card) {
+  if (!card.timedBonuses) return [];
+  const today = new Date();
+  return card.timedBonuses.filter(tb => {
+    const end = new Date(tb.end);
+    end.setHours(23, 59, 59);
+    return today <= end;
+  }).map(tb => tb.note);
+}
+
+const ALL_CATEGORIES = [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED];
+
 function computeBreadth(card, mode) {
-  return CATEGORIES.reduce((acc, cat) => {
+  return ALL_CATEGORIES.reduce((acc, cat) => {
     return acc + effectiveMult(card, cat.key) * CURRENCY_VALUES[card.currency][mode];
   }, 0);
 }
@@ -275,13 +316,13 @@ function ownerCards(ownership, who, cards) {
 // ─── Results column ────────────────────────────────────────────────────────────
 
 // Build card-first results: for each card, which categories does it win?
-function buildCardResults(cards, mode, pointsPref) {
+function buildCardResults(cards, mode, pointsPref, categories) {
   const eligible = cards.filter(c => effectiveStatus(c) !== "draft");
   if (!eligible.length) return [];
 
   // For each category, find the winning card
   const catWinners = {};
-  CATEGORIES.forEach(cat => {
+  categories.forEach(cat => {
     const best = getBestCard(eligible, cat.key, mode, pointsPref);
     if (best) {
       if (!catWinners[best.card.id]) catWinners[best.card.id] = [];
@@ -307,9 +348,9 @@ function buildCardResults(cards, mode, pointsPref) {
     });
 }
 
-function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers }) {
+function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers, categories }) {
   if (cards.filter(c => effectiveStatus(c) !== "draft").length === 0) return null;
-  const cardResults = buildCardResults(cards, mode, pointsPref);
+  const cardResults = buildCardResults(cards, mode, pointsPref, categories);
 
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
@@ -391,7 +432,13 @@ export default function App() {
     try { return localStorage.getItem("cp_mode_v1") || "cashback"; }
     catch { return "cashback"; }
   });
+  const [advancedMode, setAdvancedMode] = useState(false);
   const [showMultipliers, setShowMultipliers] = useState(false);
+
+  // Active categories based on mode
+  const CATEGORIES = advancedMode
+    ? [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED]
+    : CATEGORIES_LIGHT;
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [cardConfig, setCardConfig] = useState(() => {
     try { return JSON.parse(localStorage.getItem("cp_card_config_v1") || "{}"); }
@@ -406,7 +453,9 @@ export default function App() {
   const effectiveCards = CARDS.map(card => {
     if (!card.configurable) return card;
     const chosen = cardConfig[card.id] || [];
-    if (!chosen.length) return card; // no config = all 1x
+    const maxPicks = card.configurable === "double" ? 2 : 1;
+    const fullyConfigured = chosen.length === maxPicks;
+    if (!fullyConfigured) return card; // not fully configured = all 1x
     const newMults = { ...card.multipliers };
     chosen.forEach(catKey => { newMults[catKey] = card.configurableRate || 5; });
     return { ...card, multipliers: newMults };
@@ -582,6 +631,19 @@ export default function App() {
                   height: 26,
                 }}>
                   {m === "cashback" ? "Cash Back" : "Travel"}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 0, background: T.surfaceAlt, borderRadius: 7, padding: 3, border: `1px solid ${advancedMode ? T.selectedBorder : T.border}`, height: 32, alignItems: "center" }}>
+              {[false, true].map(adv => (
+                <button key={String(adv)} className="mono pill-btn" onClick={() => setAdvancedMode(adv)} style={{
+                  padding: "4px 11px", borderRadius: 5, fontSize: "0.64rem", fontWeight: 500,
+                  letterSpacing: "0.04em", textTransform: "uppercase",
+                  background: advancedMode === adv ? T.accent : "transparent",
+                  color: advancedMode === adv ? T.accentText : T.textMid,
+                  height: 26,
+                }}>
+                  {adv ? "Advanced" : "Simple"}
                 </button>
               ))}
             </div>
@@ -788,9 +850,16 @@ export default function App() {
                         <span className="serif" style={{ fontSize: "0.87rem", color: isAssigned ? T.text : T.textMid, lineHeight: 1.2 }}>{card.name}</span>
                         <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim, border: `1px solid ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.currency}</span>
                         {isDraft && !card.rotatingPeriod && <span className="mono" style={{ fontSize: "0.57rem", color: T.textDim, border: `1px dashed ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>coming soon</span>}
-                        {card.configurable && isAssigned && (cardConfig[card.id] || []).length === 0 && (
-                          <span className="mono" style={{ fontSize: "0.57rem", color: "#e67e22", border: "1px solid #e67e22", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>configure</span>
-                        )}
+                        {card.configurable && isAssigned && (() => {
+                          const chosen = cardConfig[card.id] || [];
+                          const maxPicks = card.configurable === "double" ? 2 : 1;
+                          const fullyConfigured = chosen.length === maxPicks;
+                          return !fullyConfigured && (
+                            <span className="mono" style={{ fontSize: "0.57rem", color: "#e67e22", border: "1px solid #e67e22", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>
+                              {chosen.length === 0 ? "configure" : `pick ${maxPicks - chosen.length} more`}
+                            </span>
+                          );
+                        })()}
                         {card.configurable && isAssigned && (cardConfig[card.id] || []).length > 0 && (
                           <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>
                             5× {(cardConfig[card.id] || []).map(k => CATEGORIES.find(c=>c.key===k)?.label).join(", ")}
@@ -798,8 +867,14 @@ export default function App() {
                         )}
                         {isExpired && <span className="mono" style={{ fontSize: "0.57rem", color: "#ef4444", border: "1px dashed #ef4444", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>period ended</span>}
                         {card.rotatingNote && !isExpired && !isDraft && <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.rotatingNote}</span>}
+                        {activeTimedNotes(card).map((note, i) => (
+                          <span key={i} className="mono" style={{ fontSize: "0.57rem", color: "#1565c0", border: "1px solid #90caf9", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{note}</span>
+                        ))}
+                        {card._caveats?.groceries && (
+                          <span className="mono" style={{ fontSize: "0.57rem", color: "#e67e22", border: "1px solid #f0a500", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>⚠ excl. Target/Walmart/wholesale</span>
+                        )}
                       </div>
-                      <MultiplierLine card={card} />
+                      <MultiplierLine card={card} advancedMode={advancedMode} />
                       {/* Configurable category picker */}
                       {card.configurable && isAssigned && (() => {
                         const chosen = cardConfig[card.id] || [];
@@ -807,13 +882,21 @@ export default function App() {
                         const needsConfig = chosen.length === 0;
                         return (
                           <div style={{ marginTop: 6 }} onClick={e => e.stopPropagation()}>
-                            {needsConfig && (
-                              <div className="mono" style={{ fontSize: "0.6rem", color: "#e67e22", marginBottom: 4, fontWeight: 600 }}>
-                                ⚠ Pick {maxPicks === 1 ? "a category" : "up to 2 categories"} to include in optimizer
-                              </div>
-                            )}
+                            {(() => {
+                              const isPartial = chosen.length > 0 && chosen.length < maxPicks;
+                              const isEmpty = chosen.length === 0;
+                              return (isEmpty || isPartial) && (
+                                <div className="mono" style={{ fontSize: "0.6rem", color: "#e67e22", marginBottom: 4, fontWeight: 600 }}>
+                                  {maxPicks === 1
+                                    ? "⚠ Pick a category to include in optimizer"
+                                    : isEmpty
+                                      ? "⚠ Pick 2 categories to include in optimizer"
+                                      : "⚠ Pick 1 more category to include in optimizer"}
+                                </div>
+                              );
+                            })()}
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                              {CATEGORIES.filter(c => c.key !== "other").map(cat => {
+                              {[...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED].filter(c => c.key !== "other" && c.key !== "groceries_big_box").map(cat => {
                                 const isChosen = chosen.includes(cat.key);
                                 const isDisabled = !isChosen && chosen.length >= maxPicks;
                                 return (
@@ -950,7 +1033,7 @@ export default function App() {
               /* Single wallet — full width, card-first */
               <div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {buildCardResults(meCards, mode, pointsPref).map(({ card, wins }, i) => (
+                  {buildCardResults(meCards, mode, pointsPref, CATEGORIES).map(({ card, wins }, i) => (
                     <div key={card.id} style={{
                       borderRadius: 10, background: T.surface, border: `1px solid ${T.border}`,
                       overflow: "hidden", animation: `slideIn 0.27s ease ${i * 0.05}s both`,
@@ -973,6 +1056,9 @@ export default function App() {
                               {cat.key === "travel" && card.multipliers.travel_portal > card.multipliers.travel && (
                                 <span className="mono" style={{ fontSize: "0.58rem", color: "#2e7d32" }}>💡 {card.multipliers.travel_portal}× via portal</span>
                               )}
+                              {cat.key === "groceries" && card._caveats?.groceries && (
+                                <span className="mono" style={{ fontSize: "0.55rem", color: "#e67e22" }}>⚠ excl. Target/Walmart</span>
+                              )}
                             </div>
                             <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
                               <span className="mono" style={{ fontSize: "0.65rem", color: T.textDim }}>{best.mult}×</span>
@@ -994,8 +1080,8 @@ export default function App() {
             ) : (
               /* Dual wallet — side by side */
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                <ResultsColumn cards={meCards} label={names.me} mode={mode} color={T.accent} pointsPref={pointsPref} showMultipliers={showMultipliers} />
-                <ResultsColumn cards={spouseCards} label={names.spouse} mode={mode} color="#4b5563" pointsPref={pointsPref} showMultipliers={showMultipliers} />
+                <ResultsColumn cards={meCards} label={names.me} mode={mode} color={T.accent} pointsPref={pointsPref} showMultipliers={showMultipliers} categories={CATEGORIES} />
+                <ResultsColumn cards={spouseCards} label={names.spouse} mode={mode} color="#4b5563" pointsPref={pointsPref} showMultipliers={showMultipliers} categories={CATEGORIES} />
               </div>
             )}
 
