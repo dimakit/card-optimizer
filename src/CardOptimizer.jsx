@@ -342,7 +342,25 @@ export default function App() {
   });
   const [search, setSearch] = useState("");
   const [issuerFilter, setIssuerFilter] = useState(null);
-  const [ownerFilter, setOwnerFilter] = useState(null); // null | "both" | "me" | "spouse" | "none"
+  const [ownerFilter, setOwnerFilter] = useState(null);
+  const [hidden, setHidden] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("cp_hidden_v1") || "[]"); }
+    catch { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem("cp_hidden_v1", JSON.stringify(hidden)); } catch {}
+  }, [hidden]);
+
+  const toggleHidden = (id) => {
+    setHidden(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    // also remove from ownership if hiding
+    setOwnership(prev => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+  }; // null | "both" | "me" | "spouse" | "none"
   const [showShare, setShowShare] = useState(false);
   const [loadCode, setLoadCode] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -407,13 +425,17 @@ export default function App() {
     return own === ownerFilter;
   });
 
+  // Separate hidden from visible
+  const visibleFiltered = ownerFiltered.filter(c => !hidden.includes(c.id));
+  const hiddenFiltered  = filtered.filter(c => hidden.includes(c.id)); // hidden ignores ownerFilter
+
   // Sort: both → me → spouse → unassigned (non-draft) → draft/expired
   const sortedFiltered = [
-    ...ownerFiltered.filter(c => ownership[c.id] === "both"),
-    ...ownerFiltered.filter(c => ownership[c.id] === "me"),
-    ...ownerFiltered.filter(c => ownership[c.id] === "spouse"),
-    ...ownerFiltered.filter(c => !ownership[c.id] && effectiveStatus(c) === "supported"),
-    ...ownerFiltered.filter(c => !ownership[c.id] && effectiveStatus(c) === "draft"),
+    ...visibleFiltered.filter(c => ownership[c.id] === "both"),
+    ...visibleFiltered.filter(c => ownership[c.id] === "me"),
+    ...visibleFiltered.filter(c => ownership[c.id] === "spouse"),
+    ...visibleFiltered.filter(c => !ownership[c.id] && effectiveStatus(c) === "supported"),
+    ...visibleFiltered.filter(c => !ownership[c.id] && effectiveStatus(c) === "draft"),
   ];
 
   const meCards = ownerCards(ownership, "me", CARDS);
@@ -703,7 +725,11 @@ export default function App() {
                       <div style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                         <select
                           value={own || ""}
-                          onChange={e => setOwn(e.target.value || null)}
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (val === "__hide__") { toggleHidden(card.id); }
+                            else setOwn(val || null);
+                          }}
                           className="mono"
                           style={{
                             padding: "5px 8px", borderRadius: 6, fontSize: "0.65rem", fontWeight: 600,
@@ -718,6 +744,7 @@ export default function App() {
                           <option value="me">{names.me}</option>
                           <option value="spouse">{names.spouse}</option>
                           <option value="both">Both</option>
+                          <option value="__hide__">Hide</option>
                         </select>
                       </div>
                     )}
@@ -733,6 +760,37 @@ export default function App() {
               }}>
                 See Cheat Sheet →
               </button>
+            )}
+
+            {/* Hidden cards section */}
+            {hiddenFiltered.length > 0 && (
+              <div style={{ marginTop: 28 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <div style={{ flex: 1, height: 1, background: T.border }} />
+                  <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    Hidden Cards ({hiddenFiltered.length})
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: T.border }} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2, opacity: 0.6 }}>
+                  {hiddenFiltered.map(card => (
+                    <div key={card.id} style={{
+                      display: "flex", alignItems: "center", gap: 13, padding: "9px 13px", borderRadius: 9,
+                      background: T.surface, border: `1px solid ${T.border}`,
+                    }}>
+                      <CardBadge card={card} width={60} height={38} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span className="serif" style={{ fontSize: "0.82rem", color: T.textMid }}>{card.name}</span>
+                      </div>
+                      <button className="mono pill-btn" onClick={() => toggleHidden(card.id)} style={{
+                        padding: "4px 10px", borderRadius: 5, fontSize: "0.62rem", fontWeight: 600,
+                        border: `1px solid ${T.border}`, background: "transparent", color: T.textMid,
+                        flexShrink: 0,
+                      }}>↩ Restore</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         )}
