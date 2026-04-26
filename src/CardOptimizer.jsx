@@ -23,8 +23,10 @@ const CATEGORIES = [
   { key: "streaming",  label: "Streaming",       icon: "📺" },
   { key: "online",     label: "Online",          icon: "🛍️" },
   { key: "drugstores", label: "Drugstores",      icon: "💊" },
-  { key: "homeimprove", label: "Home Improvement", icon: "🔨" },
-  { key: "other",       label: "Everything Else",  icon: "💳" },
+  { key: "homeimprove",   label: "Home Improvement", icon: "🔨" },
+  { key: "amazon",        label: "Amazon",            icon: "📦" },
+  { key: "travel_portal", label: "Travel (Portal)",   icon: "🖥️" },
+  { key: "other",         label: "Everything Else",   icon: "💳" },
 ];
 
 const ISSUER_PALETTE = {
@@ -281,6 +283,11 @@ function ResultsColumn({ cards, label, mode, color }) {
                     <span style={{ color: T.textDim, opacity: 0.6 }}> vs {runner.pct.toFixed(1)}%</span>
                   )}
                 </div>
+                {cat.key === "travel" && best.card.multipliers.travel_portal > best.card.multipliers.travel && (
+                  <div style={{ fontSize: "0.55rem", color: "#2e7d32", fontFamily: "monospace", marginTop: 2 }}>
+                    💡 {best.card.multipliers.travel_portal}× via portal
+                  </div>
+                )}
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ fontSize: "0.95rem", fontWeight: 600, color: T.text, fontFamily: "monospace", letterSpacing: "-0.02em" }}>
@@ -844,6 +851,11 @@ export default function App() {
                               <span style={{ color: T.textDim, marginLeft: 6 }}>vs {runner.pct.toFixed(1)}% {runner.card.shortName}</span>
                             )}
                           </div>
+                          {cat.key === "travel" && best.card.multipliers.travel_portal > best.card.multipliers.travel && (
+                            <div className="mono" style={{ fontSize: "0.58rem", color: "#2e7d32", marginTop: 2 }}>
+                              💡 {best.card.multipliers.travel_portal}× via portal · book at chase.com/travel
+                            </div>
+                          )}
                         </div>
                         <div style={{ textAlign: "right", flexShrink: 0 }}>
                           <div className="mono" style={{ fontSize: "1.1rem", fontWeight: 500, color: T.text, letterSpacing: "-0.03em", lineHeight: 1 }}>{best.pct.toFixed(1)}%</div>
