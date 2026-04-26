@@ -406,7 +406,9 @@ export default function App() {
   const effectiveCards = CARDS.map(card => {
     if (!card.configurable) return card;
     const chosen = cardConfig[card.id] || [];
-    if (!chosen.length) return card; // no config = all 1x
+    const maxPicks = card.configurable === "double" ? 2 : 1;
+    const fullyConfigured = chosen.length === maxPicks;
+    if (!fullyConfigured) return card; // not fully configured = all 1x
     const newMults = { ...card.multipliers };
     chosen.forEach(catKey => { newMults[catKey] = card.configurableRate || 5; });
     return { ...card, multipliers: newMults };
@@ -788,9 +790,16 @@ export default function App() {
                         <span className="serif" style={{ fontSize: "0.87rem", color: isAssigned ? T.text : T.textMid, lineHeight: 1.2 }}>{card.name}</span>
                         <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim, border: `1px solid ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.currency}</span>
                         {isDraft && !card.rotatingPeriod && <span className="mono" style={{ fontSize: "0.57rem", color: T.textDim, border: `1px dashed ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>coming soon</span>}
-                        {card.configurable && isAssigned && (cardConfig[card.id] || []).length === 0 && (
-                          <span className="mono" style={{ fontSize: "0.57rem", color: "#e67e22", border: "1px solid #e67e22", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>configure</span>
-                        )}
+                        {card.configurable && isAssigned && (() => {
+                          const chosen = cardConfig[card.id] || [];
+                          const maxPicks = card.configurable === "double" ? 2 : 1;
+                          const fullyConfigured = chosen.length === maxPicks;
+                          return !fullyConfigured && (
+                            <span className="mono" style={{ fontSize: "0.57rem", color: "#e67e22", border: "1px solid #e67e22", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>
+                              {chosen.length === 0 ? "configure" : `pick ${maxPicks - chosen.length} more`}
+                            </span>
+                          );
+                        })()}
                         {card.configurable && isAssigned && (cardConfig[card.id] || []).length > 0 && (
                           <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>
                             5× {(cardConfig[card.id] || []).map(k => CATEGORIES.find(c=>c.key===k)?.label).join(", ")}
@@ -807,11 +816,19 @@ export default function App() {
                         const needsConfig = chosen.length === 0;
                         return (
                           <div style={{ marginTop: 6 }} onClick={e => e.stopPropagation()}>
-                            {needsConfig && (
-                              <div className="mono" style={{ fontSize: "0.6rem", color: "#e67e22", marginBottom: 4, fontWeight: 600 }}>
-                                ⚠ Pick {maxPicks === 1 ? "a category" : "up to 2 categories"} to include in optimizer
-                              </div>
-                            )}
+                            {(() => {
+                              const isPartial = chosen.length > 0 && chosen.length < maxPicks;
+                              const isEmpty = chosen.length === 0;
+                              return (isEmpty || isPartial) && (
+                                <div className="mono" style={{ fontSize: "0.6rem", color: "#e67e22", marginBottom: 4, fontWeight: 600 }}>
+                                  {maxPicks === 1
+                                    ? "⚠ Pick a category to include in optimizer"
+                                    : isEmpty
+                                      ? "⚠ Pick 2 categories to include in optimizer"
+                                      : "⚠ Pick 1 more category to include in optimizer"}
+                                </div>
+                              );
+                            })()}
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                               {CATEGORIES.filter(c => c.key !== "other").map(cat => {
                                 const isChosen = chosen.includes(cat.key);
