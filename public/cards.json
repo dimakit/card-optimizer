@@ -16,7 +16,9 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 10
     }
   },
   {
@@ -36,8 +38,66 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 5
     }
+  },
+  {
+    "id": "chase_freedom_unlimited",
+    "name": "Chase Freedom Unlimited",
+    "shortName": "Freedom Unlim.",
+    "issuer": "Chase",
+    "currency": "UR",
+    "status": "supported",
+    "multipliers": {
+      "dining": 3,
+      "groceries": 1,
+      "gas": 1,
+      "travel": 1,
+      "transit": 1,
+      "streaming": 1,
+      "online": 1,
+      "drugstores": 3,
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 5,
+      "other": 1.5
+    },
+    "_note": "1.5x everywhere, 3x dining/drugstores, 5x Chase Travel portal"
+  },
+  {
+    "id": "chase_freedom_flex",
+    "name": "Chase Freedom Flex",
+    "shortName": "Freedom Flex",
+    "issuer": "Chase",
+    "currency": "UR",
+    "status": "supported",
+    "multipliers": {
+      "dining": 3,
+      "groceries": 1,
+      "gas": 1,
+      "travel": 1,
+      "transit": 1,
+      "streaming": 1,
+      "online": 1,
+      "drugstores": 3,
+      "homeimprove": 1,
+      "amazon": 5,
+      "travel_portal": 5,
+      "other": 1
+    },
+    "rotatingPeriod": {
+      "start": "2026-04-01",
+      "end": "2026-06-30"
+    },
+    "rotatingNote": "5\u00d7 Amazon & portal travel \u00b7 Active Apr\u2013Jun 2026",
+    "rotatingCategories": [
+      "amazon",
+      "travel_portal"
+    ],
+    "_lastUpdated": "2026-04-26",
+    "_updatedBy": "Q2 2026: Amazon + Chase Travel Portal"
   },
   {
     "id": "citi_strata_elite",
@@ -56,7 +116,9 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 3
     }
   },
   {
@@ -76,7 +138,9 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 5
     }
   },
   {
@@ -96,7 +160,9 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 3
     }
   },
   {
@@ -116,7 +182,9 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 1
     }
   },
   {
@@ -136,7 +204,9 @@
       "online": 3,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 1
     }
   },
   {
@@ -156,7 +226,9 @@
       "online": 2,
       "drugstores": 2,
       "other": 2,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 5
     }
   },
   {
@@ -176,7 +248,9 @@
       "online": 2,
       "drugstores": 2,
       "other": 2,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 5
     }
   },
   {
@@ -196,7 +270,9 @@
       "online": 2,
       "drugstores": 2,
       "other": 2,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 2
     }
   },
   {
@@ -216,7 +292,9 @@
       "online": 2,
       "drugstores": 2,
       "other": 2,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 2
     }
   },
   {
@@ -236,7 +314,9 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 3
     }
   },
   {
@@ -256,7 +336,9 @@
       "online": 1.5,
       "drugstores": 1.5,
       "other": 1.5,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 2
     }
   },
   {
@@ -276,7 +358,9 @@
       "online": 1.5,
       "drugstores": 1.5,
       "other": 1.5,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 2
     }
   },
   {
@@ -296,7 +380,9 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 4
     }
   },
   {
@@ -316,7 +402,9 @@
       "online": 2,
       "drugstores": 2,
       "other": 2,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 2
     }
   },
   {
@@ -336,7 +424,9 @@
       "online": 2,
       "drugstores": 2,
       "other": 2,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 2
     }
   },
   {
@@ -356,7 +446,9 @@
       "online": 2,
       "drugstores": 2,
       "other": 2,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 2
     }
   },
   {
@@ -376,7 +468,9 @@
       "online": 5,
       "drugstores": 5,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 5
     }
   },
   {
@@ -396,7 +490,9 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 5
+      "homeimprove": 5,
+      "amazon": 1,
+      "travel_portal": 1
     },
     "rotatingPeriod": {
       "start": "2026-04-01",
@@ -427,7 +523,9 @@
       "online": 1,
       "drugstores": 1,
       "other": 1,
-      "homeimprove": 1
+      "homeimprove": 1,
+      "amazon": 1,
+      "travel_portal": 1
     }
   }
 ]
