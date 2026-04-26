@@ -478,40 +478,40 @@ export default function App() {
       <div style={{ borderBottom: `1px solid ${T.border}`, padding: "0 20px", position: "sticky", top: 0, zIndex: 10, background: T.topbar, backdropFilter: "blur(10px)", boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
         <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
           <span className="serif" style={{ fontSize: "1.18rem", color: T.text }}>CardOptimizer</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <button className="mono pill-btn" onClick={() => setShowShare(s => !s)} style={{
               padding: "6px 12px", borderRadius: 6, fontSize: "0.66rem", fontWeight: 500,
               letterSpacing: "0.05em", border: `1px solid ${T.border}`,
               background: showShare ? T.accent : T.surface,
               color: showShare ? T.accentText : T.textMid,
+              height: 32,
             }}>💾 Save / Load</button>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-              <span className="mono" style={{ fontSize: "0.52rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 2 }}>Points Pref.</span>
-              <select value={pointsPref} onChange={e => setPointsPref(e.target.value)} className="mono" style={{
-                padding: "4px 7px", borderRadius: 6, border: `1px solid ${pointsPref !== "none" ? T.selectedBorder : T.border}`,
-                background: pointsPref !== "none" ? T.selectedBg : T.surface,
-                color: T.text, fontSize: "0.66rem", cursor: "pointer", outline: "none",
-              }}>
-                <option value="none">No preference</option>
-                <option value="UR">UR (Chase)</option>
-                <option value="MR">MR (Amex)</option>
-                <option value="CAPONE">Miles (Capital One)</option>
-                <option value="TYP">TYP (Citi)</option>
-                <option value="CASHBACK">Cash Back</option>
-              </select>
+            <select value={pointsPref} onChange={e => setPointsPref(e.target.value)} className="mono" style={{
+              padding: "0 8px", height: 32, borderRadius: 6,
+              border: `1px solid ${pointsPref !== "none" ? T.selectedBorder : T.border}`,
+              background: pointsPref !== "none" ? T.selectedBg : T.surface,
+              color: T.text, fontSize: "0.66rem", cursor: "pointer", outline: "none",
+            }}>
+              <option value="none">Points: Any</option>
+              <option value="UR">Points: UR (Chase)</option>
+              <option value="MR">Points: MR (Amex)</option>
+              <option value="CAPONE">Points: Capital One</option>
+              <option value="TYP">Points: TYP (Citi)</option>
+              <option value="CASHBACK">Points: Cash Back</option>
+            </select>
+            <div style={{ display: "flex", gap: 0, background: T.surfaceAlt, borderRadius: 7, padding: 3, border: `1px solid ${T.border}`, height: 32, alignItems: "center" }}>
+              {["cashback", "travel"].map(m => (
+                <button key={m} className="mono pill-btn" onClick={() => setMode(m)} style={{
+                  padding: "4px 13px", borderRadius: 5, fontSize: "0.68rem", fontWeight: 500,
+                  letterSpacing: "0.05em", textTransform: "uppercase",
+                  background: mode === m ? T.accent : "transparent",
+                  color: mode === m ? T.accentText : T.textMid,
+                  height: 26,
+                }}>
+                  {m === "cashback" ? "Cash Back" : "Travel"}
+                </button>
+              ))}
             </div>
-          <div style={{ display: "flex", gap: 0, background: T.surfaceAlt, borderRadius: 7, padding: 3, border: `1px solid ${T.border}` }}>
-            {["cashback", "travel"].map(m => (
-              <button key={m} className="mono pill-btn" onClick={() => setMode(m)} style={{
-                padding: "5px 13px", borderRadius: 5, fontSize: "0.68rem", fontWeight: 500,
-                letterSpacing: "0.05em", textTransform: "uppercase",
-                background: mode === m ? T.accent : "transparent",
-                color: mode === m ? T.accentText : T.textMid,
-              }}>
-                {m === "cashback" ? "Cash Back" : "Travel"}
-              </button>
-            ))}
-          </div>
           </div>
         </div>
 
@@ -720,16 +720,12 @@ export default function App() {
                       <MultiplierLine card={card} />
                     </div>
 
-                    {/* Ownership dropdown */}
+                    {/* Ownership dropdown + hide toggle */}
                     {!isDraft && (
-                      <div style={{ flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6 }} onClick={e => e.stopPropagation()}>
                         <select
                           value={own || ""}
-                          onChange={e => {
-                            const val = e.target.value;
-                            if (val === "__hide__") { toggleHidden(card.id); }
-                            else setOwn(val || null);
-                          }}
+                          onChange={e => setOwn(e.target.value || null)}
                           className="mono"
                           style={{
                             padding: "5px 8px", borderRadius: 6, fontSize: "0.65rem", fontWeight: 600,
@@ -744,8 +740,17 @@ export default function App() {
                           <option value="me">{names.me}</option>
                           <option value="spouse">{names.spouse}</option>
                           <option value="both">Both</option>
-                          <option value="__hide__">Hide</option>
                         </select>
+                        <button
+                          title="Hide this card"
+                          onClick={() => toggleHidden(card.id)}
+                          className="pill-btn"
+                          style={{
+                            width: 28, height: 28, borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center",
+                            border: `1px solid ${T.border}`, background: T.surface,
+                            color: T.textDim, fontSize: "0.85rem", cursor: "pointer", flexShrink: 0,
+                          }}
+                        >🙈</button>
                       </div>
                     )}
                   </div>
