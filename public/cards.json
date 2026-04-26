@@ -11,15 +11,40 @@
       "groceries": 1,
       "gas": 1,
       "travel": 4,
-      "transit": 1,
+      "transit": 4,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 1,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 10
-    }
+      "travel_portal": 8,
+      "hotels_direct": 4,
+      "airlines_direct": 4,
+      "lyft": 5,
+      "uber": 1,
+      "peloton": 10,
+      "entertainment": 1,
+      "groceries_big_box": 1
+    },
+    "timedBonuses": [
+      {
+        "categories": [
+          "lyft"
+        ],
+        "mult": 5,
+        "end": "2027-09-30",
+        "note": "5\u00d7 Lyft \u00b7 through Sep 2027"
+      },
+      {
+        "categories": [
+          "peloton"
+        ],
+        "mult": 10,
+        "end": "2027-12-31",
+        "note": "10\u00d7 Peloton \u00b7 through Dec 2027"
+      }
+    ]
   },
   {
     "id": "chase_sapphire_preferred",
@@ -33,15 +58,32 @@
       "groceries": 3,
       "gas": 1,
       "travel": 2,
-      "transit": 1,
+      "transit": 2,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 3,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 5
-    }
+      "travel_portal": 5,
+      "hotels_direct": 2,
+      "airlines_direct": 2,
+      "lyft": 5,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
+    },
+    "timedBonuses": [
+      {
+        "categories": [
+          "lyft"
+        ],
+        "mult": 5,
+        "end": "2027-09-30",
+        "note": "5\u00d7 Lyft \u00b7 through Sep 2027"
+      }
+    ]
   },
   {
     "id": "chase_freedom_unlimited",
@@ -56,15 +98,31 @@
       "gas": 1,
       "travel": 1,
       "transit": 1,
+      "drugstores": 3,
+      "amazon": 1,
+      "other": 1.5,
       "streaming": 1,
       "online": 1,
-      "drugstores": 3,
       "homeimprove": 1,
-      "amazon": 1,
       "travel_portal": 5,
-      "other": 1.5
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 5,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     },
-    "_note": "1.5x everywhere, 3x dining/drugstores, 5x Chase Travel portal"
+    "timedBonuses": [
+      {
+        "categories": [
+          "lyft"
+        ],
+        "mult": 5,
+        "end": "2027-09-30",
+        "note": "5\u00d7 Lyft \u00b7 through Sep 2027"
+      }
+    ]
   },
   {
     "id": "chase_freedom_flex",
@@ -79,13 +137,20 @@
       "gas": 1,
       "travel": 1,
       "transit": 1,
+      "drugstores": 3,
+      "amazon": 5,
+      "other": 1,
       "streaming": 1,
       "online": 1,
-      "drugstores": 3,
       "homeimprove": 1,
-      "amazon": 5,
       "travel_portal": 5,
-      "other": 1
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 5,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     },
     "rotatingPeriod": {
       "start": "2026-04-01",
@@ -95,6 +160,16 @@
     "rotatingCategories": [
       "amazon",
       "travel_portal"
+    ],
+    "timedBonuses": [
+      {
+        "categories": [
+          "lyft"
+        ],
+        "mult": 5,
+        "end": "2027-09-30",
+        "note": "5\u00d7 Lyft \u00b7 through Sep 2027"
+      }
     ],
     "_lastUpdated": "2026-04-26",
     "_updatedBy": "Q2 2026: Amazon + Chase Travel Portal"
@@ -110,15 +185,22 @@
       "dining": 3,
       "groceries": 3,
       "gas": 3,
-      "travel": 3,
+      "travel": 6,
       "transit": 1,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 1,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 3
+      "travel_portal": 6,
+      "hotels_direct": 6,
+      "airlines_direct": 6,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -134,13 +216,20 @@
       "gas": 1,
       "travel": 5,
       "transit": 1,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 1,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 5
+      "travel_portal": 5,
+      "hotels_direct": 1,
+      "airlines_direct": 5,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -156,13 +245,23 @@
       "gas": 1,
       "travel": 3,
       "transit": 1,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 1,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 3
+      "travel_portal": 2,
+      "hotels_direct": 1,
+      "airlines_direct": 3,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
+    },
+    "_caveats": {
+      "groceries": "Excludes Target, Walmart, wholesale clubs"
     }
   },
   {
@@ -176,15 +275,22 @@
       "dining": 1,
       "groceries": 6,
       "gas": 3,
-      "travel": 1,
-      "transit": 1,
+      "travel": 3,
+      "transit": 3,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 6,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 1
+      "travel_portal": 1,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -200,13 +306,20 @@
       "gas": 3,
       "travel": 1,
       "transit": 1,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 1,
       "online": 3,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 1
+      "travel_portal": 1,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -217,18 +330,25 @@
     "currency": "CAPONE",
     "status": "supported",
     "multipliers": {
-      "dining": 2,
-      "groceries": 2,
-      "gas": 2,
-      "travel": 5,
-      "transit": 2,
-      "streaming": 2,
-      "online": 2,
-      "drugstores": 2,
-      "other": 2,
-      "homeimprove": 1,
+      "dining": 1,
+      "groceries": 1,
+      "gas": 1,
+      "travel": 10,
+      "transit": 1,
+      "drugstores": 1,
       "amazon": 1,
-      "travel_portal": 5
+      "other": 2,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 5,
+      "hotels_direct": 10,
+      "airlines_direct": 5,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 5,
+      "groceries_big_box": 1
     }
   },
   {
@@ -239,18 +359,25 @@
     "currency": "CAPONE",
     "status": "supported",
     "multipliers": {
-      "dining": 2,
-      "groceries": 2,
-      "gas": 2,
+      "dining": 1,
+      "groceries": 1,
+      "gas": 1,
       "travel": 5,
-      "transit": 2,
-      "streaming": 2,
-      "online": 2,
-      "drugstores": 2,
-      "other": 2,
-      "homeimprove": 1,
+      "transit": 1,
+      "drugstores": 1,
       "amazon": 1,
-      "travel_portal": 5
+      "other": 2,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 5,
+      "hotels_direct": 5,
+      "airlines_direct": 5,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -261,18 +388,25 @@
     "currency": "CASHBACK",
     "status": "supported",
     "multipliers": {
-      "dining": 2,
-      "groceries": 2,
-      "gas": 2,
-      "travel": 2,
-      "transit": 2,
-      "streaming": 2,
-      "online": 2,
-      "drugstores": 2,
-      "other": 2,
-      "homeimprove": 1,
+      "dining": 1,
+      "groceries": 1,
+      "gas": 1,
+      "travel": 1,
+      "transit": 1,
+      "drugstores": 1,
       "amazon": 1,
-      "travel_portal": 2
+      "other": 2,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 2,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -283,18 +417,25 @@
     "currency": "CASHBACK",
     "status": "supported",
     "multipliers": {
-      "dining": 2,
-      "groceries": 2,
-      "gas": 2,
-      "travel": 2,
-      "transit": 2,
-      "streaming": 2,
-      "online": 2,
-      "drugstores": 2,
-      "other": 2,
-      "homeimprove": 1,
+      "dining": 1,
+      "groceries": 1,
+      "gas": 1,
+      "travel": 1,
+      "transit": 1,
+      "drugstores": 1,
       "amazon": 1,
-      "travel_portal": 2
+      "other": 2,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 2,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -308,15 +449,22 @@
       "dining": 3,
       "groceries": 1,
       "gas": 3,
-      "travel": 3,
+      "travel": 5,
       "transit": 1,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 1,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 3
+      "travel_portal": 3,
+      "hotels_direct": 5,
+      "airlines_direct": 4,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -328,17 +476,24 @@
     "status": "supported",
     "multipliers": {
       "dining": 2,
-      "groceries": 1.5,
-      "gas": 1.5,
+      "groceries": 1,
+      "gas": 1,
       "travel": 2,
-      "transit": 1.5,
-      "streaming": 1.5,
-      "online": 1.5,
-      "drugstores": 1.5,
-      "other": 1.5,
-      "homeimprove": 1,
+      "transit": 1,
+      "drugstores": 1,
       "amazon": 1,
-      "travel_portal": 2
+      "other": 1.5,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 2,
+      "hotels_direct": 2,
+      "airlines_direct": 2,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -350,17 +505,24 @@
     "status": "supported",
     "multipliers": {
       "dining": 2,
-      "groceries": 1.5,
-      "gas": 1.5,
+      "groceries": 1,
+      "gas": 1,
       "travel": 2,
-      "transit": 1.5,
-      "streaming": 1.5,
-      "online": 1.5,
-      "drugstores": 1.5,
-      "other": 1.5,
-      "homeimprove": 1,
+      "transit": 1,
+      "drugstores": 1,
       "amazon": 1,
-      "travel_portal": 2
+      "other": 1.5,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 2,
+      "hotels_direct": 2,
+      "airlines_direct": 2,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -376,13 +538,20 @@
       "gas": 4,
       "travel": 4,
       "transit": 2,
-      "streaming": 1,
-      "online": 1,
       "drugstores": 1,
-      "other": 1,
-      "homeimprove": 1,
       "amazon": 1,
-      "travel_portal": 4
+      "other": 1,
+      "streaming": 2,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 4,
+      "hotels_direct": 4,
+      "airlines_direct": 4,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -393,18 +562,25 @@
     "currency": "CASHBACK",
     "status": "supported",
     "multipliers": {
-      "dining": 2,
-      "groceries": 2,
-      "gas": 2,
-      "travel": 2,
-      "transit": 2,
-      "streaming": 2,
-      "online": 2,
-      "drugstores": 2,
-      "other": 2,
-      "homeimprove": 1,
+      "dining": 1,
+      "groceries": 1,
+      "gas": 1,
+      "travel": 1,
+      "transit": 1,
+      "drugstores": 1,
       "amazon": 1,
-      "travel_portal": 2
+      "other": 2,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 2,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -415,18 +591,25 @@
     "currency": "CASHBACK",
     "status": "supported",
     "multipliers": {
-      "dining": 2,
-      "groceries": 2,
-      "gas": 2,
-      "travel": 2,
-      "transit": 2,
-      "streaming": 2,
-      "online": 2,
-      "drugstores": 2,
-      "other": 2,
-      "homeimprove": 1,
+      "dining": 1,
+      "groceries": 1,
+      "gas": 1,
+      "travel": 1,
+      "transit": 1,
+      "drugstores": 1,
       "amazon": 1,
-      "travel_portal": 2
+      "other": 2,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 2,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -437,18 +620,25 @@
     "currency": "CASHBACK",
     "status": "supported",
     "multipliers": {
-      "dining": 2,
-      "groceries": 2,
-      "gas": 2,
-      "travel": 2,
-      "transit": 2,
-      "streaming": 2,
-      "online": 2,
-      "drugstores": 2,
-      "other": 2,
-      "homeimprove": 1,
+      "dining": 1,
+      "groceries": 1,
+      "gas": 1,
+      "travel": 1,
+      "transit": 1,
+      "drugstores": 1,
       "amazon": 1,
-      "travel_portal": 2
+      "other": 2,
+      "streaming": 1,
+      "online": 1,
+      "homeimprove": 1,
+      "travel_portal": 2,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     }
   },
   {
@@ -458,23 +648,30 @@
     "issuer": "Citi",
     "currency": "CASHBACK",
     "status": "supported",
+    "configurable": "single",
+    "configurableRate": 5,
+    "configurableNote": "5\u00d7 on your top category \u00b7 1\u00d7 everything else",
     "multipliers": {
       "dining": 1,
       "groceries": 1,
       "gas": 1,
       "travel": 1,
       "transit": 1,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 1,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 1
-    },
-    "configurable": "single",
-    "configurableRate": 5,
-    "configurableNote": "5\u00d7 on your top category \u00b7 1\u00d7 everything else"
+      "travel_portal": 1,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
+    }
   },
   {
     "id": "discover_it",
@@ -489,13 +686,20 @@
       "gas": 1,
       "travel": 1,
       "transit": 1,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 1,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 5,
-      "amazon": 1,
-      "travel_portal": 1
+      "travel_portal": 1,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
     },
     "rotatingPeriod": {
       "start": "2026-04-01",
@@ -516,22 +720,29 @@
     "issuer": "U.S. Bank",
     "currency": "CASHBACK",
     "status": "supported",
+    "configurable": "double",
+    "configurableRate": 5,
+    "configurableNote": "5\u00d7 on 2 chosen categories \u00b7 1\u00d7 everything else",
     "multipliers": {
       "dining": 1,
       "groceries": 1,
       "gas": 1,
       "travel": 1,
       "transit": 1,
+      "drugstores": 1,
+      "amazon": 1,
+      "other": 1,
       "streaming": 1,
       "online": 1,
-      "drugstores": 1,
-      "other": 1,
       "homeimprove": 1,
-      "amazon": 1,
-      "travel_portal": 1
-    },
-    "configurable": "double",
-    "configurableRate": 5,
-    "configurableNote": "5\u00d7 on 2 chosen categories \u00b7 1\u00d7 everything else"
+      "travel_portal": 1,
+      "hotels_direct": 1,
+      "airlines_direct": 1,
+      "lyft": 1,
+      "uber": 1,
+      "peloton": 1,
+      "entertainment": 1,
+      "groceries_big_box": 1
+    }
   }
 ]
