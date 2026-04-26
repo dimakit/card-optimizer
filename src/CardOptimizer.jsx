@@ -154,7 +154,6 @@ function CardBadge({ card, width = 76, height = 48, isSelected = false }) {
       </div>
     </div>
   );
-  );
 }
 
 // ─── Multiplier line ───────────────────────────────────────────────────────────
@@ -246,7 +245,6 @@ function OwnerToggle({ cardId, ownership, setOwnership }) {
       })}
     </div>
   );
-  );
 }
 
 // ─── Results column ────────────────────────────────────────────────────────────
@@ -304,7 +302,6 @@ function ResultsColumn({ cards, label, mode, color }) {
         })}
       </div>
     </div>
-  );
   );
 }
 
@@ -800,6 +797,5 @@ export default function App() {
         )}
       </div>
     </div>
-  );
   );
 }
