@@ -244,8 +244,31 @@ function ownerCards(ownership, who, cards) {
 
 // ─── Results column ────────────────────────────────────────────────────────────
 
+// Build card-first results: for each card, which categories does it win?
+function buildCardResults(cards, mode, pointsPref) {
+  const eligible = cards.filter(c => effectiveStatus(c) !== "draft");
+  if (!eligible.length) return [];
+
+  // For each category, find the winning card
+  const catWinners = {};
+  CATEGORIES.forEach(cat => {
+    const best = getBestCard(eligible, cat.key, mode, pointsPref);
+    if (best) {
+      if (!catWinners[best.card.id]) catWinners[best.card.id] = [];
+      catWinners[best.card.id].push({ cat, best });
+    }
+  });
+
+  // Build one entry per winning card, in catalog order
+  return eligible
+    .filter(card => catWinners[card.id])
+    .map(card => ({ card, wins: catWinners[card.id] }));
+}
+
 function ResultsColumn({ cards, label, mode, color, pointsPref }) {
   if (cards.filter(c => effectiveStatus(c) !== "draft").length === 0) return null;
+  const cardResults = buildCardResults(cards, mode, pointsPref);
+
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{
@@ -253,53 +276,40 @@ function ResultsColumn({ cards, label, mode, color, pointsPref }) {
         background: color, color: T.accentText, fontSize: "0.65rem", fontFamily: "monospace",
         letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600,
       }}>{label}</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        {CATEGORIES.map((cat, i) => {
-          const best = getBestCard(cards, cat.key, mode, pointsPref);
-          if (!best) return null;
-          const allScored = cards.filter(c => effectiveStatus(c) !== "draft").map(card => {
-            const mult = card.multipliers[cat.key] ?? card.multipliers.other;
-            return { card, pct: mult * CURRENCY_VALUES[card.currency][mode] * 100 };
-          }).sort((a, b) => b.pct - a.pct);
-          const runner = allScored[1];
-
-          return (
-            <div key={cat.key} style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "9px 10px",
-              borderRadius: 8, background: T.surface, border: `1px solid ${T.border}`,
-              animation: `slideIn 0.27s ease ${i * 0.03}s both`,
-            }}>
-              <CardBadge card={best.card} width={58} height={37} isSelected />
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {cardResults.map(({ card, wins }, i) => (
+          <div key={card.id} style={{
+            borderRadius: 10, background: T.surface, border: `1px solid ${T.border}`,
+            overflow: "hidden", animation: `slideIn 0.27s ease ${i * 0.05}s both`,
+          }}>
+            {/* Card header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: `1px solid ${T.border}` }}>
+              <CardBadge card={card} width={62} height={39} isSelected />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: "0.58rem", color: T.textDim, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 2, fontFamily: "monospace" }}>
-                  {cat.icon} {cat.label}
-                </div>
-                <div style={{ fontSize: "0.78rem", color: T.text, marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "Georgia,serif" }}>
-                  {best.card.shortName}
-                </div>
-                <div style={{ fontSize: "0.58rem", color: T.textDim, fontFamily: "monospace" }}>
-                  {best.mult}× · {(CURRENCY_VALUES[best.card.currency][mode] * 100).toFixed(1)}¢/pt
-                  {runner && Math.abs(runner.pct - best.pct) > 0.001 && (
-                    <span style={{ color: T.textDim, opacity: 0.6 }}> vs {runner.pct.toFixed(1)}%</span>
-                  )}
-                </div>
-                {cat.key === "travel" && best.card.multipliers.travel_portal > best.card.multipliers.travel && (
-                  <div style={{ fontSize: "0.55rem", color: "#2e7d32", fontFamily: "monospace", marginTop: 2 }}>
-                    💡 {best.card.multipliers.travel_portal}× via portal
-                  </div>
-                )}
-              </div>
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <div style={{ fontSize: "0.95rem", fontWeight: 600, color: T.text, fontFamily: "monospace", letterSpacing: "-0.02em" }}>
-                  {best.pct.toFixed(1)}%
-                </div>
-                <div style={{ fontSize: "0.53rem", color: T.textDim, fontFamily: "monospace" }}>
-                  {mode === "cashback" ? "cash" : "travel"}
-                </div>
+                <div className="serif" style={{ fontSize: "0.85rem", color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{card.name}</div>
+                <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{card.currency}</div>
               </div>
             </div>
-          );
-        })}
+            {/* Winning categories */}
+            <div style={{ padding: "6px 0" }}>
+              {wins.map(({ cat, best }) => (
+                <div key={cat.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: "0.75rem" }}>{cat.icon}</span>
+                    <span className="mono" style={{ fontSize: "0.65rem", color: T.textMid }}>{cat.label}</span>
+                    {cat.key === "travel" && card.multipliers.travel_portal > card.multipliers.travel && (
+                      <span className="mono" style={{ fontSize: "0.55rem", color: "#2e7d32" }}>💡 {card.multipliers.travel_portal}× via portal</span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                    <span className="mono" style={{ fontSize: "0.62rem", color: T.textDim }}>{best.mult}×</span>
+                    <span className="mono" style={{ fontSize: "0.78rem", fontWeight: 600, color: T.text }}>{best.pct.toFixed(1)}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -341,12 +351,7 @@ export default function App() {
     try { localStorage.setItem("cp_points_pref_v1", pointsPref); } catch {}
   }, [pointsPref]);
 
-  const [view, setView] = useState(() => {
-    try {
-      const o = JSON.parse(localStorage.getItem("cp_ownership_v2") || "{}");
-      return Object.keys(o).length > 0 ? "results" : "pick";
-    } catch { return "pick"; }
-  });
+  const [view, setView] = useState("pick");
   const [search, setSearch] = useState("");
   const [issuerFilter, setIssuerFilter] = useState(null);
   const [ownerFilter, setOwnerFilter] = useState(null);
@@ -432,18 +437,10 @@ export default function App() {
     return own === ownerFilter;
   });
 
-  // Separate hidden from visible
+  // Separate hidden from visible — preserve original card order
   const visibleFiltered = ownerFiltered.filter(c => !hidden.includes(c.id));
-  const hiddenFiltered  = filtered.filter(c => hidden.includes(c.id)); // hidden ignores ownerFilter
-
-  // Sort: both → me → spouse → unassigned (non-draft) → draft/expired
-  const sortedFiltered = [
-    ...visibleFiltered.filter(c => ownership[c.id] === "both"),
-    ...visibleFiltered.filter(c => ownership[c.id] === "me"),
-    ...visibleFiltered.filter(c => ownership[c.id] === "spouse"),
-    ...visibleFiltered.filter(c => !ownership[c.id] && effectiveStatus(c) === "supported"),
-    ...visibleFiltered.filter(c => !ownership[c.id] && effectiveStatus(c) === "draft"),
-  ];
+  const hiddenFiltered  = filtered.filter(c => hidden.includes(c.id));
+  const sortedFiltered  = visibleFiltered; // keep original catalog order
 
   const meCards = ownerCards(ownership, "me", CARDS);
   const spouseCards = ownerCards(ownership, "spouse", CARDS);
@@ -819,51 +816,42 @@ export default function App() {
                 </button>
               </div>
             ) : isSingleWallet ? (
-              /* Single wallet — full width */
+              /* Single wallet — full width, card-first */
               <div>
-                <div style={{ textAlign: "center", marginBottom: 14, padding: "6px 12px", borderRadius: 6, background: T.accent, color: T.accentText, fontSize: "0.65rem", fontFamily: "monospace", letterSpacing: "0.07em", textTransform: "uppercase", fontWeight: 600, display: "inline-block" }}>
-                  {names.me}
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  {CATEGORIES.map((cat, i) => {
-                    const best = getBestCard(meCards, cat.key, mode, pointsPref);
-                    if (!best) return null;
-                    const allScored = meCards.filter(c => c.status !== "draft").map(card => {
-                      const mult = card.multipliers[cat.key] ?? card.multipliers.other;
-                      return { card, pct: mult * CURRENCY_VALUES[card.currency][mode] * 100 };
-                    }).sort((a, b) => b.pct - a.pct);
-                    const runner = allScored[1];
-                    return (
-                      <div key={cat.key} style={{
-                        display: "flex", alignItems: "center", gap: 13, padding: "12px 13px", borderRadius: 9,
-                        background: T.surface, border: `1px solid ${T.border}`,
-                        animation: `slideIn 0.27s ease ${i * 0.03}s both`,
-                      }}>
-                        <CardBadge card={best.card} width={76} height={48} isSelected />
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {buildCardResults(meCards, mode, pointsPref).map(({ card, wins }, i) => (
+                    <div key={card.id} style={{
+                      borderRadius: 10, background: T.surface, border: `1px solid ${T.border}`,
+                      overflow: "hidden", animation: `slideIn 0.27s ease ${i * 0.05}s both`,
+                    }}>
+                      {/* Card header */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", borderBottom: `1px solid ${T.border}` }}>
+                        <CardBadge card={card} width={76} height={48} isSelected />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div className="mono" style={{ fontSize: "0.61rem", color: T.textDim, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 4 }}>{cat.icon} {cat.label}</div>
-                          <div className="serif" style={{ fontSize: "0.86rem", color: T.text, marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{best.card.name}</div>
-                          <div className="mono" style={{ fontSize: "0.63rem", color: T.textMid }}>
-                            {best.mult}× {best.card.currency}
-                            <span style={{ color: T.border, margin: "0 3px" }}>·</span>
-                            <span style={{ color: T.textMid }}>{(CURRENCY_VALUES[best.card.currency][mode] * 100).toFixed(1)}¢/pt</span>
-                            {runner && Math.abs(runner.pct - best.pct) > 0.001 && (
-                              <span style={{ color: T.textDim, marginLeft: 6 }}>vs {runner.pct.toFixed(1)}% {runner.card.shortName}</span>
-                            )}
-                          </div>
-                          {cat.key === "travel" && best.card.multipliers.travel_portal > best.card.multipliers.travel && (
-                            <div className="mono" style={{ fontSize: "0.58rem", color: "#2e7d32", marginTop: 2 }}>
-                              💡 {best.card.multipliers.travel_portal}× via portal · book at chase.com/travel
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ textAlign: "right", flexShrink: 0 }}>
-                          <div className="mono" style={{ fontSize: "1.1rem", fontWeight: 500, color: T.text, letterSpacing: "-0.03em", lineHeight: 1 }}>{best.pct.toFixed(1)}%</div>
-                          <div className="mono" style={{ fontSize: "0.57rem", color: T.textDim, marginTop: 3 }}>{mode === "cashback" ? "cash back" : "travel val."}</div>
+                          <div className="serif" style={{ fontSize: "0.92rem", color: T.text }}>{card.name}</div>
+                          <div className="mono" style={{ fontSize: "0.62rem", color: T.textDim, marginTop: 2 }}>{card.currency} · {(CURRENCY_VALUES[card.currency][mode] * 100).toFixed(1)}¢/pt</div>
                         </div>
                       </div>
-                    );
-                  })}
+                      {/* Winning categories */}
+                      <div style={{ padding: "4px 0" }}>
+                        {wins.map(({ cat, best }) => (
+                          <div key={cat.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontSize: "0.85rem" }}>{cat.icon}</span>
+                              <span className="mono" style={{ fontSize: "0.68rem", color: T.textMid }}>{cat.label}</span>
+                              {cat.key === "travel" && card.multipliers.travel_portal > card.multipliers.travel && (
+                                <span className="mono" style={{ fontSize: "0.58rem", color: "#2e7d32" }}>💡 {card.multipliers.travel_portal}× via portal</span>
+                              )}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+                              <span className="mono" style={{ fontSize: "0.65rem", color: T.textDim }}>{best.mult}×</span>
+                              <span className="mono" style={{ fontSize: "0.9rem", fontWeight: 600, color: T.text }}>{best.pct.toFixed(1)}%</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : (
