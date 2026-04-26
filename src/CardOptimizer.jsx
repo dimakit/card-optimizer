@@ -20,7 +20,6 @@ const CATEGORIES_LIGHT = [
   { key: "groceries",   label: "Groceries",        icon: "🛒" },
   { key: "gas",         label: "Gas",              icon: "⛽" },
   { key: "travel",      label: "Travel",           icon: "✈️" },
-  { key: "transit",     label: "Transit",          icon: "🚇" },
   { key: "drugstores",  label: "Drugstores",       icon: "💊" },
   { key: "amazon",      label: "Amazon",           icon: "📦" },
   { key: "other",       label: "Everything Else",  icon: "💳" },
@@ -32,8 +31,7 @@ const CATEGORIES_ADVANCED = [
   { key: "online",          label: "Online Retail",        icon: "🛍️" },
   { key: "homeimprove",     label: "Home Improvement",     icon: "🔨" },
 
-  { key: "hotels_direct",   label: "Hotels (Direct)",      icon: "🏨" },
-  { key: "airlines_direct", label: "Airlines (Direct)",    icon: "🛫" },
+
   { key: "lyft",            label: "Lyft",                 icon: "🚗" },
   { key: "uber",            label: "Uber",                 icon: "🚕" },
   { key: "peloton",         label: "Peloton",              icon: "🚴" },
@@ -412,7 +410,25 @@ export default function App() {
   useEffect(() => {
     fetch("/cards.json")
       .then(r => { if (!r.ok) throw new Error("fetch failed"); return r.json(); })
-      .then(data => { if (Array.isArray(data)) setCards(data); setCardsLoading(false); })
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCards(data);
+          // Check for ?profile= in URL and auto-load it
+          const params = new URLSearchParams(window.location.search);
+          const urlProfile = params.get("profile");
+          if (urlProfile) {
+            const result = decodeProfile(urlProfile, data);
+            if (result) {
+              setOwnership(result.ownership);
+              setNames(result.names);
+              setMode(result.mode);
+              // Clean URL without reloading
+              window.history.replaceState({}, "", window.location.pathname);
+            }
+          }
+        }
+        setCardsLoading(false);
+      })
       .catch(e => { console.error("cards.json load failed:", e); setCardsLoading(false); });
   }, []);
 
@@ -676,6 +692,17 @@ export default function App() {
                     color: T.accentText, fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.04em", flexShrink: 0,
                     border: "none",
                   }}>{copyDone ? "✓ Copied!" : "Copy"}</button>
+                  <button className="mono pill-btn" onClick={() => {
+                    const url = `${window.location.origin}${window.location.pathname}?profile=${encodeURIComponent(rawCode)}`;
+                    navigator.clipboard.writeText(url).then(() => {
+                      setCopyDone(true);
+                      setTimeout(() => setCopyDone(false), 2000);
+                    });
+                  }} style={{
+                    padding: "8px 14px", borderRadius: 6, background: T.surface,
+                    color: T.textMid, fontSize: "0.68rem", fontWeight: 500, letterSpacing: "0.04em", flexShrink: 0,
+                    border: `1px solid ${T.border}`,
+                  }}>🔗 Share link</button>
                 </div>
                 <p className="mono" style={{ fontSize: "0.6rem", color: T.textDim, marginTop: 6 }}>Save this code. Paste it on any device to restore your wallet.</p>
               </div>
