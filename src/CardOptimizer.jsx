@@ -25,7 +25,7 @@ const CATEGORIES = [
   { key: "drugstores", label: "Drugstores",      icon: "💊" },
   { key: "homeimprove",   label: "Home Improvement", icon: "🔨" },
   { key: "amazon",        label: "Amazon",            icon: "📦" },
-  { key: "travel_portal", label: "Travel (Portal)",   icon: "🖥️" },
+  { key: "travel_portal", label: "Travel (Portal)",   icon: "🌐" },
   { key: "other",         label: "Everything Else",   icon: "💳" },
 ];
 
@@ -244,7 +244,7 @@ function ownerCards(ownership, who, cards) {
 
 // ─── Results column ────────────────────────────────────────────────────────────
 
-function ResultsColumn({ cards, label, mode, color }) {
+function ResultsColumn({ cards, label, mode, color, pointsPref }) {
   if (cards.filter(c => effectiveStatus(c) !== "draft").length === 0) return null;
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
@@ -313,9 +313,9 @@ export default function App() {
 
   useEffect(() => {
     fetch("/cards.json")
-      .then(r => r.json())
-      .then(data => { setCards(data); setCardsLoading(false); })
-      .catch(() => setCardsLoading(false));
+      .then(r => { if (!r.ok) throw new Error("fetch failed"); return r.json(); })
+      .then(data => { if (Array.isArray(data)) setCards(data); setCardsLoading(false); })
+      .catch(e => { console.error("cards.json load failed:", e); setCardsLoading(false); });
   }, []);
 
   const CARDS = cards;
@@ -451,9 +451,9 @@ export default function App() {
 
   const isSingleWallet = meCards.length > 0 && spouseCards.length === 0;
 
-  if (cardsLoading) return (
-    <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <span className="mono" style={{ color: "#888", fontSize: "0.8rem", letterSpacing: "0.08em" }}>LOADING...</span>
+  if (cardsLoading || cards.length === 0) return (
+    <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
+      <span className="mono" style={{ color: "#888", fontSize: "0.8rem", letterSpacing: "0.08em" }}>{cardsLoading ? "LOADING..." : "Failed to load cards. Please refresh."}</span>
     </div>
   );
 
@@ -869,8 +869,8 @@ export default function App() {
             ) : (
               /* Dual wallet — side by side */
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                <ResultsColumn cards={meCards} label={names.me} mode={mode} color={T.accent} />
-                <ResultsColumn cards={spouseCards} label={names.spouse} mode={mode} color="#4b5563" />
+                <ResultsColumn cards={meCards} label={names.me} mode={mode} color={T.accent} pointsPref={pointsPref} />
+                <ResultsColumn cards={spouseCards} label={names.spouse} mode={mode} color="#4b5563" pointsPref={pointsPref} />
               </div>
             )}
 
