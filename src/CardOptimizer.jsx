@@ -184,6 +184,18 @@ function MultiplierLine({ card }) {
   );
 }
 
+// ─── Rotating period helper ──────────────────────────────────────────────────
+
+function effectiveStatus(card) {
+  if (card.status !== "supported") return card.status;
+  if (!card.rotatingPeriod) return "supported";
+  const today = new Date();
+  const start = new Date(card.rotatingPeriod.start);
+  const end = new Date(card.rotatingPeriod.end);
+  end.setHours(23, 59, 59); // include last day
+  return today >= start && today <= end ? "supported" : "draft";
+}
+
 // ─── Scoring ──────────────────────────────────────────────────────────────────
 
 function computeBreadth(card, mode) {
@@ -194,7 +206,7 @@ function computeBreadth(card, mode) {
 }
 
 function getBestCard(cards, category, mode) {
-  const eligible = cards.filter(c => c.status !== "draft");
+  const eligible = cards.filter(c => effectiveStatus(c) !== "draft");
   if (!eligible.length) return null;
   const scored = eligible.map(card => {
     const mult = card.multipliers[category] ?? card.multipliers.other;
@@ -207,10 +219,10 @@ function getBestCard(cards, category, mode) {
 
 // ─── Wallet ownership: "me" | "spouse" | "both" ────────────────────────────────
 
-function ownerCards(ownership, who) {
-  return CARDS.filter(c => {
+function ownerCards(ownership, who, cards) {
+  return cards.filter(c => {
     const o = ownership[c.id];
-    return o === who || o === "both";
+    return (o === who || o === "both");
   });
 }
 
@@ -406,18 +418,17 @@ export default function App() {
     return own === ownerFilter;
   });
 
-  // Sort: both → me → spouse → unassigned (non-draft) → draft
-  const sortOrder = { both: 0, me: 1, spouse: 2 };
+  // Sort: both → me → spouse → unassigned (non-draft) → draft/expired
   const sortedFiltered = [
     ...ownerFiltered.filter(c => ownership[c.id] === "both"),
     ...ownerFiltered.filter(c => ownership[c.id] === "me"),
     ...ownerFiltered.filter(c => ownership[c.id] === "spouse"),
-    ...ownerFiltered.filter(c => !ownership[c.id] && c.status !== "draft"),
-    ...ownerFiltered.filter(c => !ownership[c.id] && c.status === "draft"),
+    ...ownerFiltered.filter(c => !ownership[c.id] && effectiveStatus(c) === "supported"),
+    ...ownerFiltered.filter(c => !ownership[c.id] && effectiveStatus(c) === "draft"),
   ];
 
-  const meCards = ownerCards(ownership, "me");
-  const spouseCards = ownerCards(ownership, "spouse");
+  const meCards = ownerCards(ownership, "me", CARDS);
+  const spouseCards = ownerCards(ownership, "spouse", CARDS);
   const totalAssigned = Object.keys(ownership).length;
 
   const isSingleWallet = meCards.length > 0 && spouseCards.length === 0;
@@ -650,7 +661,8 @@ export default function App() {
               {sortedFiltered.map(card => {
                 const own = ownership[card.id] || null;
                 const isAssigned = !!own;
-                const isDraft = card.status === "draft";
+                const isDraft = effectiveStatus(card) === "draft";
+                const isExpired = card.rotatingPeriod && effectiveStatus(card) === "draft" && card.status === "supported";
 
                 const setOwn = (val) => {
                   setOwnership(prev => {
@@ -684,7 +696,9 @@ export default function App() {
                       <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginBottom: 4, flexWrap: "wrap" }}>
                         <span className="serif" style={{ fontSize: "0.87rem", color: isAssigned ? T.text : T.textMid, lineHeight: 1.2 }}>{card.name}</span>
                         <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim, border: `1px solid ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.currency}</span>
-                        {isDraft && <span className="mono" style={{ fontSize: "0.57rem", color: T.textDim, border: `1px dashed ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>coming soon</span>}
+                        {isDraft && !card.rotatingPeriod && <span className="mono" style={{ fontSize: "0.57rem", color: T.textDim, border: `1px dashed ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>coming soon</span>}
+                        {isExpired && <span className="mono" style={{ fontSize: "0.57rem", color: "#ef4444", border: "1px dashed #ef4444", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>period ended</span>}
+                        {card.rotatingNote && !isExpired && !isDraft && <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.rotatingNote}</span>}
                       </div>
                       <MultiplierLine card={card} />
                     </div>
