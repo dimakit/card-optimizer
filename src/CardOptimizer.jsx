@@ -285,7 +285,6 @@ function buildCardResults(cards, mode, pointsPref) {
     const best = getBestCard(eligible, cat.key, mode, pointsPref);
     if (best) {
       if (!catWinners[best.card.id]) catWinners[best.card.id] = [];
-      // Use effectiveMult so "other" floor is reflected in displayed multiplier
       const displayMult = effectiveMult(best.card, cat.key);
       const cv = CURRENCY_VALUES[best.card.currency][mode];
       catWinners[best.card.id].push({ cat, best: { ...best, mult: displayMult, pct: displayMult * cv * 100 } });
@@ -295,10 +294,20 @@ function buildCardResults(cards, mode, pointsPref) {
   // Build one entry per winning card, in catalog order
   return eligible
     .filter(card => catWinners[card.id])
-    .map(card => ({ card, wins: catWinners[card.id] }));
+    .map(card => {
+      const wins = catWinners[card.id].slice().sort((a, b) => {
+        // "other" always last
+        if (a.cat.key === "other") return 1;
+        if (b.cat.key === "other") return -1;
+        // Sort by mult desc, then label alpha
+        if (b.best.mult !== a.best.mult) return b.best.mult - a.best.mult;
+        return a.cat.label.localeCompare(b.cat.label);
+      });
+      return { card, wins };
+    });
 }
 
-function ResultsColumn({ cards, label, mode, color, pointsPref }) {
+function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers }) {
   if (cards.filter(c => effectiveStatus(c) !== "draft").length === 0) return null;
   const cardResults = buildCardResults(cards, mode, pointsPref);
 
@@ -325,7 +334,7 @@ function ResultsColumn({ cards, label, mode, color, pointsPref }) {
             </div>
             {/* Winning categories */}
             <div style={{ padding: "6px 0" }}>
-              {wins.map(({ cat, best }) => (
+              {showMultipliers ? wins.map(({ cat, best }) => (
                 <div key={cat.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ fontSize: "0.75rem" }}>{cat.icon}</span>
@@ -339,7 +348,13 @@ function ResultsColumn({ cards, label, mode, color, pointsPref }) {
                     <span className="mono" style={{ fontSize: "0.78rem", fontWeight: 600, color: T.text }}>{best.pct.toFixed(1)}%</span>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ padding: "5px 12px" }}>
+                  <span className="mono" style={{ fontSize: "0.65rem", color: T.textMid }}>
+                    {wins.map(w => w.cat.key === "other" ? "everything else" : w.cat.label).join(", ")}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -376,6 +391,9 @@ export default function App() {
     try { return localStorage.getItem("cp_mode_v1") || "cashback"; }
     catch { return "cashback"; }
   });
+  const [showMultipliers, setShowMultipliers] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
   const [pointsPref, setPointsPref] = useState(() => {
     try { return localStorage.getItem("cp_points_pref_v1") || "none"; } catch { return "none"; }
   });
@@ -607,8 +625,9 @@ export default function App() {
         {/* Tabs */}
         <div style={{ maxWidth: 860, margin: "0 auto", display: "flex" }}>
           {[
-            { id: "pick",    label: totalAssigned ? `My Cards (${totalAssigned})` : "My Cards" },
-            { id: "results", label: "Best Card Per Category" },
+            { id: "pick",      label: totalAssigned ? `My Cards (${totalAssigned})` : "My Cards" },
+            { id: "results",   label: "Best Card Per Category" },
+            { id: "cardtouse", label: "Card to Use" },
           ].map(tab => (
             <button key={tab.id} className="mono tab-btn" onClick={() => setView(tab.id)} style={{
               padding: "10px 17px", color: view === tab.id ? T.text : T.textDim,
@@ -840,6 +859,16 @@ export default function App() {
         {/* ═══ RESULTS VIEW ═══ */}
         {view === "results" && (
           <div className="slide-in">
+            {/* Multiplier toggle */}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+              <button className="mono pill-btn" onClick={() => setShowMultipliers(s => !s)} style={{
+                padding: "5px 12px", borderRadius: 6, fontSize: "0.65rem", fontWeight: 500,
+                border: `1px solid ${showMultipliers ? T.selectedBorder : T.border}`,
+                background: showMultipliers ? T.selectedBg : T.surface,
+                color: showMultipliers ? "#2e7d32" : T.textMid,
+              }}>{showMultipliers ? "✓ Showing multipliers" : "Show multipliers"}</button>
+            </div>
+
             {totalAssigned === 0 ? (
               <div style={{ textAlign: "center", padding: "60px 20px" }}>
                 <p className="serif" style={{ fontSize: "1.15rem", marginBottom: 8, color: T.textMid }}>No cards assigned</p>
@@ -867,7 +896,7 @@ export default function App() {
                       </div>
                       {/* Winning categories */}
                       <div style={{ padding: "4px 0" }}>
-                        {wins.map(({ cat, best }) => (
+                        {showMultipliers ? wins.map(({ cat, best }) => (
                           <div key={cat.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               <span style={{ fontSize: "0.85rem" }}>{cat.icon}</span>
@@ -881,7 +910,13 @@ export default function App() {
                               <span className="mono" style={{ fontSize: "0.9rem", fontWeight: 600, color: T.text }}>{best.pct.toFixed(1)}%</span>
                             </div>
                           </div>
-                        ))}
+                        )) : (
+                          <div style={{ padding: "6px 14px" }}>
+                            <span className="mono" style={{ fontSize: "0.68rem", color: T.textMid }}>
+                              {wins.map(w => w.cat.key === "other" ? "everything else" : w.cat.label).join(", ")}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -890,8 +925,8 @@ export default function App() {
             ) : (
               /* Dual wallet — side by side */
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                <ResultsColumn cards={meCards} label={names.me} mode={mode} color={T.accent} pointsPref={pointsPref} />
-                <ResultsColumn cards={spouseCards} label={names.spouse} mode={mode} color="#4b5563" pointsPref={pointsPref} />
+                <ResultsColumn cards={meCards} label={names.me} mode={mode} color={T.accent} pointsPref={pointsPref} showMultipliers={showMultipliers} />
+                <ResultsColumn cards={spouseCards} label={names.spouse} mode={mode} color="#4b5563" pointsPref={pointsPref} showMultipliers={showMultipliers} />
               </div>
             )}
 
@@ -900,6 +935,91 @@ export default function App() {
             </p>
           </div>
         )}
+
+        {/* ═══ CARD TO USE VIEW ═══ */}
+        {view === "cardtouse" && (
+          <div className="slide-in">
+            {totalAssigned === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 20px" }}>
+                <p className="serif" style={{ fontSize: "1.15rem", marginBottom: 8, color: T.textMid }}>No cards assigned yet</p>
+                <p className="mono" style={{ fontSize: "0.7rem", color: T.textDim, marginBottom: 18 }}>Go to My Cards and assign cards to each wallet first</p>
+                <button className="mono pill-btn" onClick={() => setView("pick")} style={{ padding: "10px 22px", background: T.accent, color: T.accentText, borderRadius: 6, fontWeight: 600, fontSize: "0.74rem", letterSpacing: "0.05em", textTransform: "uppercase", border: "none" }}>
+                  Assign Cards
+                </button>
+              </div>
+            ) : (
+              <div>
+                {/* Category picker */}
+                <p className="mono" style={{ fontSize: "0.65rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 12 }}>
+                  Where are you shopping?
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 28 }}>
+                  {CATEGORIES.map(cat => (
+                    <button key={cat.key} className="mono pill-btn"
+                      onClick={() => setSelectedCategory(selectedCategory === cat.key ? null : cat.key)}
+                      style={{
+                        padding: "10px 16px", borderRadius: 8, fontSize: "0.72rem", fontWeight: 500,
+                        border: `1px solid ${selectedCategory === cat.key ? T.selectedBorder : T.border}`,
+                        background: selectedCategory === cat.key ? T.selectedBg : T.surface,
+                        color: selectedCategory === cat.key ? "#2e7d32" : T.textMid,
+                        display: "flex", alignItems: "center", gap: 6,
+                      }}>
+                      <span style={{ fontSize: "1rem" }}>{cat.icon}</span>
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Result */}
+                {selectedCategory && (() => {
+                  const cat = CATEGORIES.find(c => c.key === selectedCategory);
+                  const wallets = [
+                    { label: names.me,     cards: meCards,     color: T.accent },
+                    { label: names.spouse, cards: spouseCards, color: "#4b5563" },
+                  ].filter(w => w.cards.filter(c => effectiveStatus(c) !== "draft").length > 0);
+
+                  return (
+                    <div style={{ display: "flex", flexDirection: wallets.length > 1 ? "row" : "column", gap: 12 }}>
+                      {wallets.map(wallet => {
+                        const best = getBestCard(wallet.cards, selectedCategory, mode, pointsPref);
+                        if (!best) return null;
+                        const portalNote = selectedCategory === "travel" && best.card.multipliers.travel_portal > best.card.multipliers.travel;
+                        return (
+                          <div key={wallet.label} style={{ flex: 1, borderRadius: 12, overflow: "hidden", border: `1px solid ${T.border}`, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
+                            {/* Wallet label */}
+                            <div style={{ background: wallet.color, color: T.accentText, padding: "8px 16px", fontFamily: "monospace", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                              {wallet.label}
+                            </div>
+                            {/* Card */}
+                            <div style={{ padding: "20px 16px", background: T.surface, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
+                              <CardBadge card={best.card} width={160} height={101} isSelected />
+                              <div>
+                                <div className="serif" style={{ fontSize: "1.1rem", color: T.text, marginBottom: 4 }}>{best.card.name}</div>
+                                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 6 }}>
+                                  <span className="mono" style={{ fontSize: "1.8rem", fontWeight: 700, color: T.text, letterSpacing: "-0.03em" }}>{best.pct.toFixed(1)}%</span>
+                                  <span className="mono" style={{ fontSize: "0.7rem", color: T.textDim }}>{mode === "cashback" ? "cash back" : "travel val."}</span>
+                                </div>
+                                <div className="mono" style={{ fontSize: "0.65rem", color: T.textDim, marginTop: 4 }}>
+                                  {best.mult}× {best.card.currency} · {(CURRENCY_VALUES[best.card.currency][mode] * 100).toFixed(1)}¢/pt
+                                </div>
+                                {portalNote && (
+                                  <div className="mono" style={{ fontSize: "0.63rem", color: "#2e7d32", marginTop: 6 }}>
+                                    💡 {best.card.multipliers.travel_portal}× ({(best.card.multipliers.travel_portal * CURRENCY_VALUES[best.card.currency][mode] * 100).toFixed(1)}%) if booked via portal
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );
