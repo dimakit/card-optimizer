@@ -547,7 +547,7 @@ function buildCardResults(cards, mode, pointsPref, categories) {
 }
 
 // ─── Shared SubRow component ─────────────────────────────────────────────────
-function SubRow({ sub, card, mult, pct, sameAsParent, compact = false }) {
+function SubRow({ sub, card, mult, pct, sameAsParent, compact = false, showMultipliers = true }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -563,13 +563,15 @@ function SubRow({ sub, card, mult, pct, sameAsParent, compact = false }) {
           </span>
         )}
       </div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: compact ? 3 : 4 }}>
-        {mult && <span className="mono" style={{ fontSize: compact ? "0.58rem" : "0.6rem", color: T.textDim }}>{mult}×</span>}
-        <span className="mono" style={{
-          fontSize: compact ? "0.7rem" : "0.82rem", fontWeight: 600,
-          color: sameAsParent ? T.textMid : "#1565c0"
-        }}>{pct.toFixed(1)}%</span>
-      </div>
+      {showMultipliers && (
+        <div style={{ display: "flex", alignItems: "baseline", gap: compact ? 3 : 4 }}>
+          {mult && <span className="mono" style={{ fontSize: compact ? "0.58rem" : "0.6rem", color: T.textDim }}>{mult}×</span>}
+          <span className="mono" style={{
+            fontSize: compact ? "0.7rem" : "0.82rem", fontWeight: 600,
+            color: sameAsParent ? T.textMid : "#1565c0"
+          }}>{pct.toFixed(1)}%</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -625,7 +627,7 @@ function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers,
                     </span>
                   </div>
                   {wins.flatMap(w => (w.subs || []).filter(s => !s.sameAsParent)).map(s => (
-                    <SubRow key={s.sub.key} sub={s.sub} card={s.card} pct={s.pct} sameAsParent={false} compact />
+                    <SubRow key={s.sub.key} sub={s.sub} card={s.card} pct={s.pct} sameAsParent={false} compact showMultipliers={false} />
                   ))}
                 </div>
               )}
@@ -1501,7 +1503,7 @@ export default function App() {
                               </span>
                             </div>
                             {wins.flatMap(w => (w.subs || []).filter(s => !s.sameAsParent)).map(s => (
-                              <SubRow key={s.sub.key} sub={s.sub} card={s.card} pct={s.pct} sameAsParent={false} />
+                              <SubRow key={s.sub.key} sub={s.sub} card={s.card} pct={s.pct} sameAsParent={false} showMultipliers={false} />
                             ))}
                           </div>
                         )}
