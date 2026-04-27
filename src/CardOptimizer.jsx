@@ -369,6 +369,17 @@ function ownerCards(ownership, who, cards) {
 // ─── Results column ────────────────────────────────────────────────────────────
 
 // Build card-first results: for each card, which categories does it win?
+// Sub-categories that show inline under their parent category
+const GROCERY_SUBS = [
+  { key: "whole_foods",     label: "Whole Foods",                   icon: "🥦", parent: "groceries" },
+  { key: "groceries_big_box", label: "Target / Walmart",            icon: "🏬", parent: "groceries" },
+  { key: "wholesale_clubs", label: "Wholesale Clubs (Costco etc.)", icon: "🏪", parent: "groceries" },
+];
+const TRAVEL_SUBS = [
+  { key: "travel_portal",   label: "Via Portal",                    icon: "🌐", parent: "travel" },
+];
+const ALL_SUBS = [...GROCERY_SUBS, ...TRAVEL_SUBS];
+
 function buildCardResults(cards, mode, pointsPref, categories) {
   const eligible = cards.filter(c => effectiveStatus(c) !== "draft");
   if (!eligible.length) return [];
@@ -381,7 +392,38 @@ function buildCardResults(cards, mode, pointsPref, categories) {
       if (!catWinners[best.card.id]) catWinners[best.card.id] = [];
       const displayMult = effectiveMult(best.card, cat.key);
       const cv = CURRENCY_VALUES[best.card.currency][mode];
-      catWinners[best.card.id].push({ cat, best: { ...best, mult: displayMult, pct: displayMult * cv * 100 } });
+      catWinners[best.card.id].push({ cat, best: { ...best, mult: displayMult, pct: displayMult * cv * 100 }, subs: [] });
+    }
+  });
+
+  // For each sub-category, find winner and attach to parent winner if different
+  ALL_SUBS.forEach(sub => {
+    const parentCat = categories.find(c => c.key === sub.parent);
+    if (!parentCat) return;
+    const subBest = getBestCard(eligible, sub.key, mode, pointsPref);
+    if (!subBest) return;
+    const parentBest = getBestCard(eligible, sub.parent, mode, pointsPref);
+    // Always show sub — even if same card, show it so user knows
+    // Find the win entry for the parent category (could be on any card)
+    const parentCardId = parentBest?.card.id;
+    if (parentCardId && catWinners[parentCardId]) {
+      const parentWin = catWinners[parentCardId].find(w => w.cat.key === sub.parent);
+      if (parentWin) {
+        const subMult = effectiveMult(subBest.card, sub.key);
+        const subCv = CURRENCY_VALUES[subBest.card.currency][mode];
+        // Only add sub if it differs from parent winner OR is a different card
+        const isSameCard = subBest.card.id === parentCardId;
+        const isSameMult = Math.abs(subMult * subCv - parentWin.best.mult * CURRENCY_VALUES[parentWin.best.card.currency][mode]) < 0.0001;
+        if (!isSameCard || !isSameMult) {
+          parentWin.subs.push({
+            sub,
+            card: subBest.card,
+            mult: subMult,
+            pct: subMult * subCv * 100,
+            sameAsParent: isSameCard,
+          });
+        }
+      }
     }
   });
 
@@ -390,10 +432,8 @@ function buildCardResults(cards, mode, pointsPref, categories) {
     .filter(card => catWinners[card.id])
     .map(card => {
       const wins = catWinners[card.id].slice().sort((a, b) => {
-        // "other" always last
         if (a.cat.key === "other") return 1;
         if (b.cat.key === "other") return -1;
-        // Sort by mult desc, then label alpha
         if (b.best.mult !== a.best.mult) return b.best.mult - a.best.mult;
         return a.cat.label.localeCompare(b.cat.label);
       });
@@ -428,19 +468,31 @@ function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers,
             </div>
             {/* Winning categories */}
             <div style={{ padding: "6px 0" }}>
-              {showMultipliers ? wins.map(({ cat, best }) => (
-                <div key={cat.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: "0.75rem" }}>{cat.icon}</span>
-                    <span className="mono" style={{ fontSize: "0.65rem", color: T.textMid }}>{cat.label}</span>
-                    {cat.key === "travel" && card.multipliers.travel_portal > card.multipliers.travel && (
-                      <span className="mono" style={{ fontSize: "0.55rem", color: "#2e7d32" }}>💡 {card.multipliers.travel_portal}× via portal</span>
-                    )}
+              {showMultipliers ? wins.map(({ cat, best, subs }) => (
+                <div key={cat.key}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: "0.75rem" }}>{cat.icon}</span>
+                      <span className="mono" style={{ fontSize: "0.65rem", color: T.textMid }}>{cat.label}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                      <span className="mono" style={{ fontSize: "0.62rem", color: T.textDim }}>{best.mult}×</span>
+                      <span className="mono" style={{ fontSize: "0.78rem", fontWeight: 600, color: T.text }}>{best.pct.toFixed(1)}%</span>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                    <span className="mono" style={{ fontSize: "0.62rem", color: T.textDim }}>{best.mult}×</span>
-                    <span className="mono" style={{ fontSize: "0.78rem", fontWeight: 600, color: T.text }}>{best.pct.toFixed(1)}%</span>
-                  </div>
+                  {subs && subs.map(s => (
+                    <div key={s.sub.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 12px 3px 24px", background: "rgba(0,0,0,0.03)", borderTop: `1px solid ${T.border}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: "0.65rem" }}>{s.sub.icon}</span>
+                        <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim }}>{s.sub.label}</span>
+                        {!s.sameAsParent && <span className="mono" style={{ fontSize: "0.55rem", color: "#1565c0" }}>→ {s.card.shortName}</span>}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
+                        <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim }}>{s.mult}×</span>
+                        <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 600, color: s.sameAsParent ? T.textMid : "#1565c0" }}>{s.pct.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )) : (
                 <div style={{ padding: "5px 12px" }}>
@@ -1172,22 +1224,34 @@ export default function App() {
                       </div>
                       {/* Winning categories */}
                       <div style={{ padding: "4px 0" }}>
-                        {showMultipliers ? wins.map(({ cat, best }) => (
-                          <div key={cat.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <span style={{ fontSize: "0.85rem" }}>{cat.icon}</span>
-                              <span className="mono" style={{ fontSize: "0.68rem", color: T.textMid }}>{cat.label}</span>
-                              {cat.key === "travel" && card.multipliers.travel_portal > card.multipliers.travel && (
-                                <span className="mono" style={{ fontSize: "0.58rem", color: "#2e7d32" }}>💡 {card.multipliers.travel_portal}× via portal</span>
-                              )}
-                              {cat.key === "groceries" && card._caveats?.groceries && (
-                                <span className="mono" style={{ fontSize: "0.55rem", color: "#e67e22" }}>⚠ excl. Target/Walmart</span>
-                              )}
+                        {showMultipliers ? wins.map(({ cat, best, subs }) => (
+                          <div key={cat.key}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: "0.85rem" }}>{cat.icon}</span>
+                                <span className="mono" style={{ fontSize: "0.68rem", color: T.textMid }}>{cat.label}</span>
+                                {cat.key === "groceries" && card._caveats?.groceries && (
+                                  <span className="mono" style={{ fontSize: "0.55rem", color: "#e67e22" }}>⚠ excl. Target/Walmart</span>
+                                )}
+                              </div>
+                              <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+                                <span className="mono" style={{ fontSize: "0.65rem", color: T.textDim }}>{best.mult}×</span>
+                                <span className="mono" style={{ fontSize: "0.9rem", fontWeight: 600, color: T.text }}>{best.pct.toFixed(1)}%</span>
+                              </div>
                             </div>
-                            <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-                              <span className="mono" style={{ fontSize: "0.65rem", color: T.textDim }}>{best.mult}×</span>
-                              <span className="mono" style={{ fontSize: "0.9rem", fontWeight: 600, color: T.text }}>{best.pct.toFixed(1)}%</span>
-                            </div>
+                            {subs && subs.map(s => (
+                              <div key={s.sub.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 14px 3px 28px", background: "rgba(0,0,0,0.03)", borderTop: `1px solid ${T.border}` }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                  <span style={{ fontSize: "0.7rem" }}>{s.sub.icon}</span>
+                                  <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{s.sub.label}</span>
+                                  {!s.sameAsParent && <span className="mono" style={{ fontSize: "0.58rem", color: "#1565c0" }}>→ {s.card.shortName}</span>}
+                                </div>
+                                <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                                  <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{s.mult}×</span>
+                                  <span className="mono" style={{ fontSize: "0.82rem", fontWeight: 600, color: s.sameAsParent ? T.textMid : "#1565c0" }}>{s.pct.toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         )) : (
                           <div style={{ padding: "6px 14px" }}>
