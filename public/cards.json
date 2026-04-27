@@ -28,7 +28,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     },
     "timedBonuses": [
       {
@@ -78,7 +85,14 @@
       "whole_foods": 3,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     },
     "timedBonuses": [
       {
@@ -120,7 +134,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     },
     "timedBonuses": [
       {
@@ -162,7 +183,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     },
     "rotatingPeriod": {
       "start": "2026-04-01",
@@ -214,7 +242,14 @@
       "whole_foods": 5,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     },
     "_note": "5% Amazon/Whole Foods/Chase Travel (Prime req), 2% dining/gas, 1% other. Points not transferable to UR."
   },
@@ -247,7 +282,14 @@
       "whole_foods": 3,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -279,7 +321,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -311,7 +360,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     },
     "_caveats": {
       "groceries": "Excludes Target, Walmart, wholesale clubs"
@@ -346,7 +402,14 @@
       "whole_foods": 6,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -378,7 +441,14 @@
       "whole_foods": 3,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -410,7 +480,14 @@
       "whole_foods": 2,
       "wholesale_clubs": 2,
       "target": 2,
-      "walmart": 2
+      "walmart": 2,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -442,7 +519,14 @@
       "whole_foods": 2,
       "wholesale_clubs": 2,
       "target": 2,
-      "walmart": 2
+      "walmart": 2,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -474,7 +558,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -506,7 +597,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -538,7 +636,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -570,7 +675,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1.5,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -602,7 +714,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1.5,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -637,7 +756,14 @@
       "whole_foods": 2,
       "wholesale_clubs": 2,
       "target": 2,
-      "walmart": 2
+      "walmart": 2,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     },
     "_note": "Chosen category: gas/EV, online shopping, dining, travel, drugstores, home improvement. 2x groceries/wholesale. $2500/quarter cap."
   },
@@ -670,7 +796,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -702,7 +835,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -734,7 +874,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -766,7 +913,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -801,7 +955,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     }
   },
   {
@@ -833,7 +994,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     },
     "rotatingPeriod": {
       "start": "2026-04-01",
@@ -879,7 +1047,14 @@
       "whole_foods": 1,
       "wholesale_clubs": 1,
       "target": 1,
-      "walmart": 1
+      "walmart": 1,
+      "usb_gym": 1,
+      "usb_cellphone": 1,
+      "usb_electronics": 1,
+      "usb_department": 1,
+      "usb_furniture": 1,
+      "usb_clothing": 1,
+      "usb_sporting": 1
     },
     "configurableRate2": 2,
     "configurable5xCategories": [
