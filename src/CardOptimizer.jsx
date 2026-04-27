@@ -1562,6 +1562,7 @@ export default function App() {
 
                 {/* Result */}
                 {selectedCategory && (() => {
+                  try {
                   const cat = CATEGORIES.find(c => c.key === selectedCategory);
                   const wallets = [
                     { label: names.me,     cards: meCards,     color: T.accent },
@@ -1620,17 +1621,6 @@ export default function App() {
 
                               </div>
                             </div>
-                            {/* Big box sub-result for groceries */}
-                            {selectedCategory === "groceries" && bigBoxBest && (
-                              <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px", background: T.bg, display: "flex", alignItems: "center", gap: 12 }}>
-                                <CardBadge card={bigBoxBest.card} width={72} height={45} isSelected={bigBoxDiffers} />
-                                <div style={{ flex: 1 }}>
-                                  <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>Target / Walmart / Wholesale</div>
-                                  <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{bigBoxBest.card.name}</div>
-                                  <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{bigBoxBest.mult}× · {bigBoxBest.pct.toFixed(1)}%</div>
-                                </div>
-                              </div>
-                            )}
                             {/* Whole Foods sub-result for groceries */}
                             {selectedCategory === "groceries" && wholeFoodsBest && wholeFoodsDiffers && (
                               <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px", background: T.bg, display: "flex", alignItems: "center", gap: 12 }}>
@@ -1691,6 +1681,10 @@ export default function App() {
                       })}
                     </div>
                   );
+                  } catch(e) {
+                    console.error("Card to Use crash:", e);
+                    return <div style={{padding:20,color:"red",fontFamily:"monospace",fontSize:"0.7rem"}}>Error: {e.message}</div>;
+                  }
                 })()}
               </div>
             )}
