@@ -207,7 +207,8 @@ function MultiplierLine({ card, advancedMode }) {
   const highlights = [...cats, ...extraCats]
     .map(cat => ({
       cat,
-      mult: (cat.key === "whole_foods" || cat.key === "wholesale_clubs" || cat.key === "groceries_big_box")
+      mult: (cat.key === "whole_foods" || cat.key === "wholesale_clubs" ||
+             cat.key === "target" || cat.key === "walmart")
         ? (card.multipliers[cat.key] ?? 1)
         : effectiveMult(card, cat.key, _t)
     }))
@@ -261,7 +262,7 @@ function effectiveStatus(card, today) {
 
 function effectiveMult(card, catKey, today) {
   // Special keys that live directly in multipliers but not in CATEGORIES
-  if (catKey === "whole_foods" || catKey === "groceries_big_box" || catKey === "wholesale_clubs" ||
+  if (catKey === "whole_foods" || catKey === "wholesale_clubs" ||
       catKey === "target" || catKey === "walmart" ||
       catKey.startsWith("usb_")) {
     return card.multipliers[catKey] ?? card.multipliers.other ?? 1;
@@ -402,11 +403,10 @@ const USB_2X_CATS = [
 
 // Sub-categories that show inline under their parent category
 const GROCERY_SUBS = [
-  { key: "whole_foods",       label: "Whole Foods",                   icon: "🥦", parent: "groceries" },
-  { key: "groceries_big_box", label: "Target / Walmart",              icon: "🏬", parent: "groceries" },
-  { key: "target",            label: "Target",                        icon: "🎯", parent: "groceries", parentSub: "groceries_big_box" },
-  { key: "walmart",           label: "Walmart",                       icon: "🛒", parent: "groceries", parentSub: "groceries_big_box" },
-  { key: "wholesale_clubs",   label: "Wholesale Clubs (Costco etc.)", icon: "🏪", parent: "groceries" },
+  { key: "whole_foods",     label: "Whole Foods",                   icon: "🥦", parent: "groceries" },
+  { key: "target",          label: "Target",                        icon: "🎯", parent: "groceries" },
+  { key: "walmart",         label: "Walmart",                       icon: "🛒", parent: "groceries" },
+  { key: "wholesale_clubs", label: "Wholesale Clubs (Costco etc.)", icon: "🏪", parent: "groceries" },
 ];
 const TRAVEL_SUBS = [
   { key: "travel_portal",   label: "Via Portal",                    icon: "🌐", parent: "travel" },
@@ -473,12 +473,21 @@ function buildCardResults(cards, mode, pointsPref, categories) {
 
   // Push grouped subs into parentWin.subs as combined entries
   Object.values(subGroups).forEach(group => {
+    let subs = group.subs;
+    // Deduplicate by label
+    const seen = new Set();
+    subs = subs.filter(s => {
+      if (seen.has(s.label)) return false;
+      seen.add(s.label);
+      return true;
+    });
+    // Use unique icons only
+    const icons = [...new Set(subs.map(s => s.icon))].join("");
     group.parentWin.subs.push({
-      // Combined sub: merge icons/labels from all subs in group
       sub: {
-        key: group.subs.map(s => s.key).join("+"),
-        label: group.subs.map(s => s.label).join(" / "),
-        icon: group.subs.map(s => s.icon).join(""),
+        key: subs.map(s => s.key).join("+"),
+        label: subs.map(s => s.label).join(" / "),
+        icon: icons,
       },
       card: group.card,
       mult: group.mult,
@@ -1270,7 +1279,7 @@ export default function App() {
                                 { key: "wholesale_clubs", label: "Wholesale Clubs", icon: "🏪" },
                                 { key: "target",          label: "Target",          icon: "🎯" },
                                 { key: "walmart",         label: "Walmart",         icon: "🛒" },
-                              ].filter(c => c.key !== "other" && c.key !== "groceries_big_box").map(cat => {
+                              ].filter(c => c.key !== "other").map(cat => {
                                 const isChosen = chosen.includes(cat.key);
                                 const isDisabled = !isChosen && chosen.length >= maxPicks;
                                 return (
@@ -1521,10 +1530,6 @@ export default function App() {
                         if (!best) return null;
                         const portalNote = selectedCategory === "travel" && best.card.multipliers.travel_portal > best.card.multipliers.travel;
                         // Sub-results for groceries
-                        const bigBoxBest = selectedCategory === "groceries"
-                          ? getBestCard(wallet.cards, "groceries_big_box", mode, pointsPref)
-                          : null;
-                        const bigBoxDiffers = bigBoxBest && bigBoxBest.card.id !== best.card.id;
                         const wholeFoodsBest = selectedCategory === "groceries"
                           ? getBestCard(wallet.cards, "whole_foods", mode, pointsPref)
                           : null;
@@ -1545,8 +1550,8 @@ export default function App() {
                         const walmartBest = selectedCategory === "groceries"
                           ? getBestCard(wallet.cards, "walmart", mode, pointsPref)
                           : null;
-                        const targetDiffers = targetBest && targetBest.card.id !== (bigBoxBest?.card.id || best.card.id);
-                        const walmartDiffers = walmartBest && walmartBest.card.id !== (bigBoxBest?.card.id || best.card.id);
+                        const targetDiffers = targetBest && targetBest.card.id !== best.card.id;
+                        const walmartDiffers = walmartBest && walmartBest.card.id !== best.card.id;
                         return (
                           <div key={wallet.label} style={{ flex: 1, borderRadius: 12, overflow: "hidden", border: `1px solid ${T.border}`, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                             {/* Wallet label */}
