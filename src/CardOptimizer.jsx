@@ -427,8 +427,8 @@ function buildCardResults(cards, mode, pointsPref, categories) {
     }
   });
 
-  // Build one entry per winning card, in catalog order
-  return eligible
+  // Build one entry per winning card
+  const results = eligible
     .filter(card => catWinners[card.id])
     .map(card => {
       const wins = catWinners[card.id].slice().sort((a, b) => {
@@ -439,6 +439,17 @@ function buildCardResults(cards, mode, pointsPref, categories) {
       });
       return { card, wins };
     });
+
+  // Sort: cards that ONLY win "other" go last
+  results.sort((a, b) => {
+    const aOnlyOther = a.wins.every(w => w.cat.key === "other");
+    const bOnlyOther = b.wins.every(w => w.cat.key === "other");
+    if (aOnlyOther && !bOnlyOther) return 1;
+    if (!aOnlyOther && bOnlyOther) return -1;
+    return 0; // preserve relative order otherwise
+  });
+
+  return results;
 }
 
 function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers, categories }) {
