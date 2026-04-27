@@ -440,13 +440,13 @@ function buildCardResults(cards, mode, pointsPref, categories) {
       return { card, wins };
     });
 
-  // Sort: cards that ONLY win "other" go last
+  // Sort: cards that win "other" (even alongside other categories) go last
   results.sort((a, b) => {
-    const aOnlyOther = a.wins.every(w => w.cat.key === "other");
-    const bOnlyOther = b.wins.every(w => w.cat.key === "other");
-    if (aOnlyOther && !bOnlyOther) return 1;
-    if (!aOnlyOther && bOnlyOther) return -1;
-    return 0; // preserve relative order otherwise
+    const aHasOther = a.wins.some(w => w.cat.key === "other");
+    const bHasOther = b.wins.some(w => w.cat.key === "other");
+    if (aHasOther && !bHasOther) return 1;
+    if (!aHasOther && bHasOther) return -1;
+    return 0;
   });
 
   return results;
