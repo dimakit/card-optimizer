@@ -830,9 +830,9 @@
     "issuer": "U.S. Bank",
     "currency": "CASHBACK",
     "status": "supported",
-    "configurable": "double",
+    "configurable": "triple",
     "configurableRate": 5,
-    "configurableNote": "5\u00d7 on 2 chosen categories \u00b7 1\u00d7 everything else",
+    "configurableNote": "5\u00d7 on 2 chosen categories \u00b7 2\u00d7 on 1 chosen category \u00b7 1\u00d7 everywhere else",
     "multipliers": {
       "dining": 1,
       "groceries": 1,
@@ -855,6 +855,27 @@
       "groceries_big_box": 1,
       "whole_foods": 1,
       "wholesale_clubs": 1
-    }
+    },
+    "configurableRate2": 2,
+    "configurable5xCategories": [
+      "streaming",
+      "homeimprove",
+      "entertainment",
+      "usb_utilities",
+      "usb_cellphone",
+      "usb_electronics",
+      "usb_department",
+      "dining",
+      "usb_furniture",
+      "travel",
+      "usb_gym",
+      "usb_clothing",
+      "usb_sporting"
+    ],
+    "configurable2xCategories": [
+      "gas",
+      "groceries",
+      "dining"
+    ]
   }
 ]
