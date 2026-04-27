@@ -495,10 +495,22 @@ function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers,
                   ))}
                 </div>
               )) : (
-                <div style={{ padding: "5px 12px" }}>
-                  <span className="mono" style={{ fontSize: "0.65rem", color: T.textMid }}>
-                    {wins.map(w => w.cat.key === "other" ? "everything else" : w.cat.label).join(", ")}
-                  </span>
+                <div>
+                  <div style={{ padding: "5px 12px" }}>
+                    <span className="mono" style={{ fontSize: "0.65rem", color: T.textMid }}>
+                      {wins.map(w => w.cat.key === "other" ? "everything else" : w.cat.label).join(", ")}
+                    </span>
+                  </div>
+                  {wins.flatMap(w => (w.subs || []).filter(s => !s.sameAsParent)).map(s => (
+                    <div key={s.sub.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 12px 3px 20px", background: "rgba(0,0,0,0.03)", borderTop: `1px solid ${T.border}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: "0.65rem" }}>{s.sub.icon}</span>
+                        <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim }}>{s.sub.label}</span>
+                        <span className="mono" style={{ fontSize: "0.55rem", color: "#1565c0" }}>→ {s.card.shortName}</span>
+                      </div>
+                      <span className="mono" style={{ fontSize: "0.65rem", fontWeight: 600, color: "#1565c0" }}>{s.pct.toFixed(1)}%</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -1254,10 +1266,22 @@ export default function App() {
                             ))}
                           </div>
                         )) : (
-                          <div style={{ padding: "6px 14px" }}>
-                            <span className="mono" style={{ fontSize: "0.68rem", color: T.textMid }}>
-                              {wins.map(w => w.cat.key === "other" ? "everything else" : w.cat.label).join(", ")}
-                            </span>
+                          <div>
+                            <div style={{ padding: "6px 14px" }}>
+                              <span className="mono" style={{ fontSize: "0.68rem", color: T.textMid }}>
+                                {wins.map(w => w.cat.key === "other" ? "everything else" : w.cat.label).join(", ")}
+                              </span>
+                            </div>
+                            {wins.flatMap(w => (w.subs || []).filter(s => !s.sameAsParent)).map(s => (
+                              <div key={s.sub.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 14px 3px 24px", background: "rgba(0,0,0,0.03)", borderTop: `1px solid ${T.border}` }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                  <span style={{ fontSize: "0.7rem" }}>{s.sub.icon}</span>
+                                  <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{s.sub.label}</span>
+                                  <span className="mono" style={{ fontSize: "0.58rem", color: "#1565c0" }}>→ {s.card.shortName}</span>
+                                </div>
+                                <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 600, color: "#1565c0" }}>{s.pct.toFixed(1)}%</span>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
