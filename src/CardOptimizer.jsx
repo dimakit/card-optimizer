@@ -656,6 +656,24 @@ export default function App() {
     catch { return []; }
   });
 
+  // Migrate stale cardConfig — strip unknown USB keys
+  useEffect(() => {
+    setCardConfig(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(cardId => {
+        const cfg = updated[cardId];
+        if (cfg && cfg.picks5x) {
+          const validKeys = USB_5X_CATS.map(c => c.key);
+          const cleaned = cfg.picks5x.filter(k => validKeys.includes(k));
+          if (cleaned.length !== cfg.picks5x.length) {
+            updated[cardId] = { ...cfg, picks5x: cleaned };
+          }
+        }
+      });
+      return updated;
+    });
+  }, []);
+
   // Load profile from URL ?profile= param when cards are available
   useEffect(() => {
     if (!cards.length) return;
@@ -1141,7 +1159,7 @@ export default function App() {
                             const picks5x = cfg.picks5x || [];
                             const picks2x = cfg.picks2x || [];
                             if (picks5x.length !== 2 || picks2x.length !== 1) return null;
-                            const label5x = picks5x.map(k => USB_5X_CATS.find(c=>c.key===k)?.label || k).join(", ");
+                            const label5x = picks5x.map(k => USB_5X_CATS.find(c=>c.key===k)?.label || k.replace('usb_','')).join(", ");
                             const label2x = USB_2X_CATS.find(c=>c.key===picks2x[0])?.label || picks2x[0];
                             return (
                               <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>
