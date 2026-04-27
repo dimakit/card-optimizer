@@ -338,8 +338,8 @@ function getBestCard(cards, category, mode, pointsPref) {
     // Tied — apply tiebreakers in order:
 
     // 1. Permanent bonus beats rotating/timed bonus
-    const aPermament = isPermanentBonus(a.card, category) ? 1 : 0;
-    const bPermanent = isPermanentBonus(b.card, category) ? 1 : 0;
+    const aPermament = isPermanentBonus(a.card, category, _today) ? 1 : 0;
+    const bPermanent = isPermanentBonus(b.card, category, _today) ? 1 : 0;
     if (aPermament !== bPermanent) return bPermanent - aPermament;
 
     // 2. Amazon category: prefer Amazon Prime card
@@ -655,7 +655,7 @@ export default function App() {
   }, [cardConfig]);
 
   // Build effective CARDS with configurable multipliers applied
-  const effectiveCards = CARDS.map(card => {
+  const effectiveCards = cards.map(card => {
     if (!card.configurable) return card;
     const newMults = { ...card.multipliers };
 
