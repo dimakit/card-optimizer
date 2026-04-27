@@ -177,7 +177,16 @@ function CardBadge({ card, width = 76, height = 48, isSelected = false }) {
 // ─── Multiplier line ───────────────────────────────────────────────────────────
 
 function MultiplierLine({ card, advancedMode }) {
-  const cats = advancedMode ? [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED] : CATEGORIES_LIGHT;
+  const baseCats = advancedMode ? [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED] : CATEGORIES_LIGHT;
+  // For configurable cards, always show advanced cats where a bonus was chosen
+  const floor = card.multipliers.other ?? 1;
+  const extraFromConfig = card.configurable
+    ? CATEGORIES_ADVANCED.filter(c => {
+        if (baseCats.find(b => b.key === c.key)) return false;
+        return (card.multipliers[c.key] ?? 1) > floor;
+      })
+    : [];
+  const cats = [...baseCats, ...extraFromConfig];
   const _t = new Date(); const allMults = cats.map(cat => effectiveMult(card, cat.key, _t));
   const allSame = allMults.every(m => m === allMults[0]);
 
