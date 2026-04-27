@@ -42,12 +42,12 @@ const CATEGORIES_ADVANCED = [
   { key: "uber",            label: "Uber",                 icon: "🚕" },
   { key: "peloton",         label: "Peloton",              icon: "🚴" },
   { key: "entertainment",   label: "Entertainment",        icon: "🎟️" },
-  { key: "usb_gym",         label: "Gyms & Fitness",        icon: "🏋️" },
+  { key: "usb_gym",         label: "Gyms & Fitness",        icon: "💪" },
   { key: "usb_cellphone",   label: "Cell Phone Providers",  icon: "📱" },
   { key: "usb_electronics", label: "Electronics Stores",    icon: "💻" },
   { key: "usb_department",  label: "Department Stores",     icon: "🏬" },
-  { key: "usb_furniture",   label: "Furniture Stores",      icon: "🛋️" },
-  { key: "usb_clothing",    label: "Clothing Stores",       icon: "👗" },
+  { key: "usb_furniture",   label: "Furniture Stores",      icon: "🪑" },
+  { key: "usb_clothing",    label: "Clothing Stores",       icon: "👚" },
   { key: "usb_sporting",    label: "Sporting Goods",        icon: "⚽" },
 ];
 
@@ -209,7 +209,6 @@ function MultiplierLine({ card, advancedMode }) {
   }
 
   // Show categories that beat the "other" floor
-  const floor = card.multipliers.other ?? 1;
   // Include whole_foods and wholesale_clubs as virtual display categories if they differ
   const extraCats = [];
   if ((card.multipliers.whole_foods ?? 1) !== (card.multipliers.groceries ?? 1) &&
