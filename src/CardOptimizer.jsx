@@ -502,6 +502,15 @@ export default function App() {
     ? [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED]
     : CATEGORIES_LIGHT;
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [yearOneCards, setYearOneCards] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("cp_year_one_v1") || "[]"); }
+    catch { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem("cp_year_one_v1", JSON.stringify(yearOneCards)); } catch {}
+  }, [yearOneCards]);
+
   const [cardConfig, setCardConfig] = useState(() => {
     try { return JSON.parse(localStorage.getItem("cp_card_config_v1") || "{}"); }
     catch { return {}; }
@@ -519,7 +528,10 @@ export default function App() {
     const fullyConfigured = chosen.length === maxPicks;
     if (!fullyConfigured) return card; // not fully configured = all 1x
     const newMults = { ...card.multipliers };
-    chosen.forEach(catKey => { newMults[catKey] = card.configurableRate || 5; });
+    // Use year1 rate if applicable and toggled on
+    const isYear1 = yearOneCards.includes(card.id) && card.configurableRateYear1;
+    const rate = isYear1 ? card.configurableRateYear1 : (card.configurableRate || 5);
+    chosen.forEach(catKey => { newMults[catKey] = rate; });
     return { ...card, multipliers: newMults };
   });
 
@@ -933,11 +945,20 @@ export default function App() {
                             </span>
                           );
                         })()}
-                        {card.configurable && isAssigned && (cardConfig[card.id] || []).length > 0 && (
-                          <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>
-                            5× {(cardConfig[card.id] || []).map(k => CATEGORIES.find(c=>c.key===k)?.label).join(", ")}
-                          </span>
-                        )}
+                        {card.configurable && isAssigned && (() => {
+                          const chosen = cardConfig[card.id] || [];
+                          const maxPicks = card.configurable === "double" ? 2 : 1;
+                          if (chosen.length !== maxPicks) return null;
+                          const isYear1 = yearOneCards.includes(card.id) && card.configurableRateYear1;
+                          const rate = isYear1 ? card.configurableRateYear1 : (card.configurableRate || 5);
+                          const allCats = [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED];
+                          return (
+                            <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>
+                              {rate}× {chosen.map(k => allCats.find(c=>c.key===k)?.label).join(", ")}
+                              {isYear1 && " (Y1)"}
+                            </span>
+                          );
+                        })()}
                         {isExpired && <span className="mono" style={{ fontSize: "0.57rem", color: "#ef4444", border: "1px dashed #ef4444", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>period ended</span>}
                         {card.rotatingNote && !isExpired && !isDraft && <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.rotatingNote}</span>}
                         {activeTimedNotes(card).map((note, i) => (
@@ -968,6 +989,25 @@ export default function App() {
                                 </div>
                               );
                             })()}
+                            {card.configurableRateYear1 && (
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}
+                                onClick={e => e.stopPropagation()}>
+                                <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>Year 1 bonus active?</span>
+                                <button
+                                  onClick={() => setYearOneCards(prev =>
+                                    prev.includes(card.id) ? prev.filter(id => id !== card.id) : [...prev, card.id]
+                                  )}
+                                  className="mono pill-btn"
+                                  style={{
+                                    padding: "2px 10px", borderRadius: 4, fontSize: "0.6rem", fontWeight: 600,
+                                    border: `1px solid ${yearOneCards.includes(card.id) ? T.selectedBorder : T.border}`,
+                                    background: yearOneCards.includes(card.id) ? T.selectedBg : "transparent",
+                                    color: yearOneCards.includes(card.id) ? "#2e7d32" : T.textDim,
+                                  }}>
+                                  {yearOneCards.includes(card.id) ? `✓ Yes — ${card.configurableRateYear1}×` : `No — ${card.configurableRate}×`}
+                                </button>
+                              </div>
+                            )}
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                               {[...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED].filter(c => c.key !== "other" && c.key !== "groceries_big_box").map(cat => {
                                 const isChosen = chosen.includes(cat.key);
