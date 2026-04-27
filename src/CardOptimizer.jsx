@@ -1019,8 +1019,8 @@ export default function App() {
                             )}
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                               {[...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED,
-                { key: "wholesale_clubs", label: "Wholesale Clubs", icon: "🏪" },
-              ].filter(c => c.key !== "other" && c.key !== "groceries_big_box").map(cat => {
+                                { key: "wholesale_clubs", label: "Wholesale Clubs", icon: "🏪" },
+                              ].filter(c => c.key !== "other" && c.key !== "groceries_big_box").map(cat => {
                                 const isChosen = chosen.includes(cat.key);
                                 const isDisabled = !isChosen && chosen.length >= maxPicks;
                                 return (
