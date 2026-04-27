@@ -19,16 +19,13 @@ const CURRENCY_VALUES = {
   CASHBACK: { cashback: 0.01,  travel: 0.01  },
 };
 
-const CARDS_PLACEHOLDER = []; // loaded from /cards.json
-
-
-
 // Light mode categories — shown always
 const CATEGORIES_LIGHT = [
   { key: "dining",      label: "Dining",           icon: "🍽️" },
   { key: "groceries",   label: "Groceries",        icon: "🛒" },
   { key: "gas",         label: "Gas",              icon: "⛽" },
   { key: "travel",      label: "Travel",           icon: "✈️" },
+  { key: "transit",     label: "Transit",          icon: "🚇" },
   { key: "drugstores",  label: "Drugstores",       icon: "💊" },
   { key: "amazon",      label: "Amazon",           icon: "📦" },
   { key: "other",       label: "Everything Else",  icon: "💳" },
@@ -181,7 +178,7 @@ function CardBadge({ card, width = 76, height = 48, isSelected = false }) {
 
 function MultiplierLine({ card, advancedMode }) {
   const cats = advancedMode ? [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED] : CATEGORIES_LIGHT;
-  const allMults = cats.map(cat => effectiveMult(card, cat.key));
+  const _t = new Date(); const allMults = cats.map(cat => effectiveMult(card, cat.key, _t));
   const allSame = allMults.every(m => m === allMults[0]);
 
   // If all categories earn the same rate, just say "Nx on everything"
@@ -245,12 +242,15 @@ function MultiplierLine({ card, advancedMode }) {
   );
 }
 
-// ─── Rotating period helper ──────────────────────────────────────────────────
+// ─── Scoring helpers ─────────────────────────────────────────────────────────
+// Compute today once at render time — passed into helpers to avoid repeated new Date() calls
+// Note: module-level TODAY is fine for a session; components pass their own if needed
 
-function effectiveStatus(card) {
+
+
+function effectiveStatus(card, today) {
   if (card.status !== "supported") return card.status;
   if (!card.rotatingPeriod) return "supported";
-  const today = new Date();
   const start = new Date(card.rotatingPeriod.start);
   const end = new Date(card.rotatingPeriod.end);
   end.setHours(23, 59, 59); // include last day
@@ -259,10 +259,10 @@ function effectiveStatus(card) {
 
 // ─── Scoring ──────────────────────────────────────────────────────────────────
 
-function effectiveMult(card, catKey) {
-  const today = new Date();
+function effectiveMult(card, catKey, today) {
   // Special keys that live directly in multipliers but not in CATEGORIES
   if (catKey === "whole_foods" || catKey === "groceries_big_box" || catKey === "wholesale_clubs" ||
+      catKey === "target" || catKey === "walmart" ||
       catKey.startsWith("usb_")) {
     return card.multipliers[catKey] ?? card.multipliers.other ?? 1;
   }
@@ -287,9 +287,8 @@ function effectiveMult(card, catKey) {
 }
 
 // Get active timed bonus notes for a card (not expired)
-function activeTimedNotes(card) {
+function activeTimedNotes(card, today) {
   if (!card.timedBonuses) return [];
-  const today = new Date();
   return card.timedBonuses.filter(tb => {
     const end = new Date(tb.end);
     end.setHours(23, 59, 59);
@@ -301,16 +300,15 @@ const ALL_CATEGORIES = [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED];
 
 function computeBreadth(card, mode) {
   return ALL_CATEGORIES.reduce((acc, cat) => {
-    return acc + effectiveMult(card, cat.key) * CURRENCY_VALUES[card.currency][mode];
+    return acc + effectiveMult(card, cat.key, new Date()) * CURRENCY_VALUES[card.currency][mode];
   }, 0);
 }
 
 // Returns true if a card's bonus for a category is permanent (not rotating/timed)
-function isPermanentBonus(card, catKey) {
+function isPermanentBonus(card, catKey, today) {
   if (!card.rotatingCategories || !card.rotatingCategories.includes(catKey)) {
     // Check timedBonuses too
     if (card.timedBonuses) {
-      const today = new Date();
       return !card.timedBonuses.some(tb => {
         if (!tb.categories.includes(catKey)) return false;
         const end = new Date(tb.end);
@@ -324,10 +322,11 @@ function isPermanentBonus(card, catKey) {
 }
 
 function getBestCard(cards, category, mode, pointsPref) {
-  const eligible = cards.filter(c => effectiveStatus(c) !== "draft");
+  const _today = new Date();
+  const eligible = cards.filter(c => effectiveStatus(c, _today) !== "draft");
   if (!eligible.length) return null;
   const scored = eligible.map(card => {
-    const mult = effectiveMult(card, category);
+    const mult = effectiveMult(card, category, _today);
     const cv = CURRENCY_VALUES[card.currency][mode];
     return { card, mult, value: mult * cv, pct: mult * cv * 100, breadth: computeBreadth(card, mode) };
   });
@@ -377,10 +376,6 @@ function ownerCards(ownership, who, cards) {
   });
 }
 
-// ─── Owner toggle button ───────────────────────────────────────────────────────
-
-
-
 // ─── Results column ────────────────────────────────────────────────────────────
 
 // Build card-first results: for each card, which categories does it win?
@@ -389,7 +384,6 @@ const USB_5X_CATS = [
   { key: "streaming",       label: "TV, Internet & Streaming" },
   { key: "homeimprove",     label: "Home Utilities" },
   { key: "entertainment",   label: "Movie Theaters" },
-  { key: "usb_utilities",   label: "Home Utilities" },
   { key: "usb_cellphone",   label: "Cell Phone Providers" },
   { key: "usb_electronics", label: "Electronics Stores" },
   { key: "usb_department",  label: "Department Stores" },
@@ -408,9 +402,11 @@ const USB_2X_CATS = [
 
 // Sub-categories that show inline under their parent category
 const GROCERY_SUBS = [
-  { key: "whole_foods",     label: "Whole Foods",                   icon: "🥦", parent: "groceries" },
-  { key: "groceries_big_box", label: "Target / Walmart",            icon: "🏬", parent: "groceries" },
-  { key: "wholesale_clubs", label: "Wholesale Clubs (Costco etc.)", icon: "🏪", parent: "groceries" },
+  { key: "whole_foods",       label: "Whole Foods",                   icon: "🥦", parent: "groceries" },
+  { key: "groceries_big_box", label: "Target / Walmart",              icon: "🏬", parent: "groceries" },
+  { key: "target",            label: "Target",                        icon: "🎯", parent: "groceries", parentSub: "groceries_big_box" },
+  { key: "walmart",           label: "Walmart",                       icon: "🛒", parent: "groceries", parentSub: "groceries_big_box" },
+  { key: "wholesale_clubs",   label: "Wholesale Clubs (Costco etc.)", icon: "🏪", parent: "groceries" },
 ];
 const TRAVEL_SUBS = [
   { key: "travel_portal",   label: "Via Portal",                    icon: "🌐", parent: "travel" },
@@ -418,7 +414,8 @@ const TRAVEL_SUBS = [
 const ALL_SUBS = [...GROCERY_SUBS, ...TRAVEL_SUBS];
 
 function buildCardResults(cards, mode, pointsPref, categories) {
-  const eligible = cards.filter(c => effectiveStatus(c) !== "draft");
+  const _today = new Date();
+  const eligible = cards.filter(c => effectiveStatus(c, _today) !== "draft");
   if (!eligible.length) return [];
 
   // For each category, find the winning card
@@ -427,10 +424,16 @@ function buildCardResults(cards, mode, pointsPref, categories) {
     const best = getBestCard(eligible, cat.key, mode, pointsPref);
     if (best) {
       if (!catWinners[best.card.id]) catWinners[best.card.id] = [];
-      const displayMult = effectiveMult(best.card, cat.key);
+      const displayMult = effectiveMult(best.card, cat.key, _today);
       const cv = CURRENCY_VALUES[best.card.currency][mode];
       catWinners[best.card.id].push({ cat, best: { ...best, mult: displayMult, pct: displayMult * cv * 100 }, subs: [] });
     }
+  });
+
+  // Cache parent results to avoid redundant getBestCard calls
+  const parentResultCache = {};
+  categories.forEach(cat => {
+    parentResultCache[cat.key] = getBestCard(eligible, cat.key, mode, pointsPref);
   });
 
   // For each sub-category, find winner and attach to parent winner if different
@@ -439,14 +442,12 @@ function buildCardResults(cards, mode, pointsPref, categories) {
     if (!parentCat) return;
     const subBest = getBestCard(eligible, sub.key, mode, pointsPref);
     if (!subBest) return;
-    const parentBest = getBestCard(eligible, sub.parent, mode, pointsPref);
-    // Always show sub — even if same card, show it so user knows
-    // Find the win entry for the parent category (could be on any card)
+    const parentBest = parentResultCache[sub.parent];
     const parentCardId = parentBest?.card.id;
     if (parentCardId && catWinners[parentCardId]) {
       const parentWin = catWinners[parentCardId].find(w => w.cat.key === sub.parent);
       if (parentWin) {
-        const subMult = effectiveMult(subBest.card, sub.key);
+        const subMult = effectiveMult(subBest.card, sub.key, _today);
         const subCv = CURRENCY_VALUES[subBest.card.currency][mode];
         // Only add sub if it differs from parent winner OR is a different card
         const isSameCard = subBest.card.id === parentCardId;
@@ -489,8 +490,36 @@ function buildCardResults(cards, mode, pointsPref, categories) {
   return results;
 }
 
+// ─── Shared SubRow component ─────────────────────────────────────────────────
+function SubRow({ sub, card, mult, pct, sameAsParent, compact = false }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: compact ? "3px 12px 3px 20px" : "3px 14px 3px 24px",
+      background: "rgba(0,0,0,0.03)", borderTop: `1px solid ${T.border}`,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: compact ? 5 : 6 }}>
+        <span style={{ fontSize: compact ? "0.65rem" : "0.7rem" }}>{sub.icon}</span>
+        <span className="mono" style={{ fontSize: compact ? "0.58rem" : "0.6rem", color: T.textDim }}>{sub.label}</span>
+        {!sameAsParent && (
+          <span className="mono" style={{ fontSize: compact ? "0.55rem" : "0.58rem", color: "#1565c0" }}>
+            → {card.shortName}
+          </span>
+        )}
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: compact ? 3 : 4 }}>
+        {mult && <span className="mono" style={{ fontSize: compact ? "0.58rem" : "0.6rem", color: T.textDim }}>{mult}×</span>}
+        <span className="mono" style={{
+          fontSize: compact ? "0.7rem" : "0.82rem", fontWeight: 600,
+          color: sameAsParent ? T.textMid : "#1565c0"
+        }}>{pct.toFixed(1)}%</span>
+      </div>
+    </div>
+  );
+}
+
 function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers, categories }) {
-  if (cards.filter(c => effectiveStatus(c) !== "draft").length === 0) return null;
+  const _rt = new Date(); if (cards.filter(c => effectiveStatus(c, _rt) !== "draft").length === 0) return null;
   const cardResults = buildCardResults(cards, mode, pointsPref, categories);
 
   return (
@@ -529,17 +558,7 @@ function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers,
                     </div>
                   </div>
                   {subs && subs.map(s => (
-                    <div key={s.sub.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 12px 3px 24px", background: "rgba(0,0,0,0.03)", borderTop: `1px solid ${T.border}` }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ fontSize: "0.65rem" }}>{s.sub.icon}</span>
-                        <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim }}>{s.sub.label}</span>
-                        {!s.sameAsParent && <span className="mono" style={{ fontSize: "0.55rem", color: "#1565c0" }}>→ {s.card.shortName}</span>}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
-                        <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim }}>{s.mult}×</span>
-                        <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 600, color: s.sameAsParent ? T.textMid : "#1565c0" }}>{s.pct.toFixed(1)}%</span>
-                      </div>
-                    </div>
+                    <SubRow key={s.sub.key} sub={s.sub} card={s.card} mult={s.mult} pct={s.pct} sameAsParent={s.sameAsParent} compact />
                   ))}
                 </div>
               )) : (
@@ -550,14 +569,7 @@ function ResultsColumn({ cards, label, mode, color, pointsPref, showMultipliers,
                     </span>
                   </div>
                   {wins.flatMap(w => (w.subs || []).filter(s => !s.sameAsParent)).map(s => (
-                    <div key={s.sub.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 12px 3px 20px", background: "rgba(0,0,0,0.03)", borderTop: `1px solid ${T.border}` }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ fontSize: "0.65rem" }}>{s.sub.icon}</span>
-                        <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim }}>{s.sub.label}</span>
-                        <span className="mono" style={{ fontSize: "0.55rem", color: "#1565c0" }}>→ {s.card.shortName}</span>
-                      </div>
-                      <span className="mono" style={{ fontSize: "0.65rem", fontWeight: 600, color: "#1565c0" }}>{s.pct.toFixed(1)}%</span>
-                    </div>
+                    <SubRow key={s.sub.key} sub={s.sub} card={s.card} pct={s.pct} sameAsParent={false} compact />
                   ))}
                 </div>
               )}
@@ -581,26 +593,11 @@ export default function App() {
       .then(data => {
         if (Array.isArray(data)) {
           setCards(data);
-          // Check for ?profile= in URL and auto-load it
-          const params = new URLSearchParams(window.location.search);
-          const urlProfile = params.get("profile");
-          if (urlProfile) {
-            const result = decodeProfile(urlProfile, data);
-            if (result) {
-              setOwnership(result.ownership);
-              setNames(result.names);
-              setMode(result.mode);
-              // Clean URL without reloading
-              window.history.replaceState({}, "", window.location.pathname);
-            }
-          }
         }
         setCardsLoading(false);
       })
       .catch(e => { console.error("cards.json load failed:", e); setCardsLoading(false); });
   }, []);
-
-  const CARDS = cards;
 
   const [ownership, setOwnership] = useState(() => {
     try { return JSON.parse(localStorage.getItem("cp_ownership_v2") || "{}"); }
@@ -627,6 +624,22 @@ export default function App() {
     try { return JSON.parse(localStorage.getItem("cp_year_one_v1") || "[]"); }
     catch { return []; }
   });
+
+  // Load profile from URL ?profile= param when cards are available
+  useEffect(() => {
+    if (!cards.length) return;
+    const params = new URLSearchParams(window.location.search);
+    const urlProfile = params.get("profile");
+    if (urlProfile) {
+      const result = decodeProfile(urlProfile, cards);
+      if (result) {
+        setOwnership(result.ownership);
+        setNames(result.names);
+        setMode(result.mode);
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, [cards]);
 
   useEffect(() => {
     try { localStorage.setItem("cp_year_one_v1", JSON.stringify(yearOneCards)); } catch {}
@@ -714,7 +727,7 @@ export default function App() {
     try { localStorage.setItem("cp_label_v1", profileLabel); } catch {}
   }, [profileLabel]);
 
-  const rawCode = encodeProfile(ownership, names, mode, CARDS);
+  const rawCode = encodeProfile(ownership, names, mode, cards);
   const profileCode = profileLabel.trim() ? `${profileLabel.trim().replace(/\s+/g, "_")}_${rawCode}` : rawCode;
 
   const handleCopyCode = () => {
@@ -725,7 +738,7 @@ export default function App() {
   };
 
   const handleLoadCode = () => {
-    const result = decodeProfile(loadCode, CARDS);
+    const result = decodeProfile(loadCode, cards);
     if (!result) {
       setLoadError("Invalid code — please check and try again.");
       return;
@@ -1120,7 +1133,7 @@ export default function App() {
                         })()}
                         {isExpired && <span className="mono" style={{ fontSize: "0.57rem", color: "#ef4444", border: "1px dashed #ef4444", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>period ended</span>}
                         {card.rotatingNote && !isExpired && !isDraft && <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.rotatingNote}</span>}
-                        {activeTimedNotes(card).map((note, i) => (
+                        {activeTimedNotes(card, new Date()).map((note, i) => (
                           <span key={i} className="mono" style={{ fontSize: "0.57rem", color: "#1565c0", border: "1px solid #90caf9", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{note}</span>
                         ))}
                         {card._caveats?.groceries && (
@@ -1233,6 +1246,8 @@ export default function App() {
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                               {[...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED,
                                 { key: "wholesale_clubs", label: "Wholesale Clubs", icon: "🏪" },
+                                { key: "target",          label: "Target",          icon: "🎯" },
+                                { key: "walmart",         label: "Walmart",         icon: "🛒" },
                               ].filter(c => c.key !== "other" && c.key !== "groceries_big_box").map(cat => {
                                 const isChosen = chosen.includes(cat.key);
                                 const isDisabled = !isChosen && chosen.length >= maxPicks;
@@ -1401,17 +1416,7 @@ export default function App() {
                               </div>
                             </div>
                             {subs && subs.map(s => (
-                              <div key={s.sub.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 14px 3px 28px", background: "rgba(0,0,0,0.03)", borderTop: `1px solid ${T.border}` }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                  <span style={{ fontSize: "0.7rem" }}>{s.sub.icon}</span>
-                                  <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{s.sub.label}</span>
-                                  {!s.sameAsParent && <span className="mono" style={{ fontSize: "0.58rem", color: "#1565c0" }}>→ {s.card.shortName}</span>}
-                                </div>
-                                <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                                  <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{s.mult}×</span>
-                                  <span className="mono" style={{ fontSize: "0.82rem", fontWeight: 600, color: s.sameAsParent ? T.textMid : "#1565c0" }}>{s.pct.toFixed(1)}%</span>
-                                </div>
-                              </div>
+                              <SubRow key={s.sub.key} sub={s.sub} card={s.card} mult={s.mult} pct={s.pct} sameAsParent={s.sameAsParent} />
                             ))}
                           </div>
                         )) : (
@@ -1422,14 +1427,7 @@ export default function App() {
                               </span>
                             </div>
                             {wins.flatMap(w => (w.subs || []).filter(s => !s.sameAsParent)).map(s => (
-                              <div key={s.sub.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 14px 3px 24px", background: "rgba(0,0,0,0.03)", borderTop: `1px solid ${T.border}` }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                  <span style={{ fontSize: "0.7rem" }}>{s.sub.icon}</span>
-                                  <span className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{s.sub.label}</span>
-                                  <span className="mono" style={{ fontSize: "0.58rem", color: "#1565c0" }}>→ {s.card.shortName}</span>
-                                </div>
-                                <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 600, color: "#1565c0" }}>{s.pct.toFixed(1)}%</span>
-                              </div>
+                              <SubRow key={s.sub.key} sub={s.sub} card={s.card} pct={s.pct} sameAsParent={false} />
                             ))}
                           </div>
                         )}
@@ -1518,6 +1516,15 @@ export default function App() {
                           ? getBestCard(wallet.cards, "travel_portal", mode, pointsPref)
                           : null;
                         const portalDiffers = portalBest && portalBest.card.id !== best.card.id;
+                        // Sub-results for Target and Walmart under groceries
+                        const targetBest = selectedCategory === "groceries"
+                          ? getBestCard(wallet.cards, "target", mode, pointsPref)
+                          : null;
+                        const walmartBest = selectedCategory === "groceries"
+                          ? getBestCard(wallet.cards, "walmart", mode, pointsPref)
+                          : null;
+                        const targetDiffers = targetBest && targetBest.card.id !== (bigBoxBest?.card.id || best.card.id);
+                        const walmartDiffers = walmartBest && walmartBest.card.id !== (bigBoxBest?.card.id || best.card.id);
                         return (
                           <div key={wallet.label} style={{ flex: 1, borderRadius: 12, overflow: "hidden", border: `1px solid ${T.border}`, boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}>
                             {/* Wallet label */}
@@ -1563,12 +1570,34 @@ export default function App() {
                                 </div>
                               </div>
                             )}
+                            {/* Target sub-result */}
+                            {selectedCategory === "groceries" && targetBest && targetDiffers && (
+                              <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px", background: T.bg, display: "flex", alignItems: "center", gap: 12 }}>
+                                <CardBadge card={targetBest.card} width={72} height={45} isSelected />
+                                <div style={{ flex: 1 }}>
+                                  <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>🎯 Target</div>
+                                  <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{targetBest.card.name}</div>
+                                  <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{targetBest.mult}× · {targetBest.pct.toFixed(1)}%</div>
+                                </div>
+                              </div>
+                            )}
+                            {/* Walmart sub-result */}
+                            {selectedCategory === "groceries" && walmartBest && walmartDiffers && walmartBest.card.id !== targetBest?.card.id && (
+                              <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px", background: T.bg, display: "flex", alignItems: "center", gap: 12 }}>
+                                <CardBadge card={walmartBest.card} width={72} height={45} isSelected />
+                                <div style={{ flex: 1 }}>
+                                  <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>🛒 Walmart</div>
+                                  <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{walmartBest.card.name}</div>
+                                  <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{walmartBest.mult}× · {walmartBest.pct.toFixed(1)}%</div>
+                                </div>
+                              </div>
+                            )}
                             {/* Wholesale clubs sub-result for groceries */}
                             {selectedCategory === "groceries" && wholesaleBest && wholesaleDiffers && (
                               <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px", background: T.bg, display: "flex", alignItems: "center", gap: 12 }}>
                                 <CardBadge card={wholesaleBest.card} width={72} height={45} isSelected />
                                 <div style={{ flex: 1 }}>
-                                  <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>Wholesale Clubs (Costco, Sam's, BJ's)</div>
+                                  <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>🏪 Wholesale Clubs (Costco, Sam's, BJ's)</div>
                                   <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{wholesaleBest.card.name}</div>
                                   <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{wholesaleBest.mult}× · {wholesaleBest.pct.toFixed(1)}%</div>
                                 </div>
