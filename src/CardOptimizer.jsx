@@ -427,21 +427,31 @@ function buildCardResults(cards, mode, pointsPref, categories) {
   const eligible = cards.filter(c => effectiveStatus(c, _today) !== "draft");
   if (!eligible.length) return [];
 
+  // Score across ALL categories but only display wins that are in active categories
+  // OR where the winning card has a specific bonus (not just flat rate)
+  const scoringCats = ALL_CATEGORIES;
+  const displayKeys = new Set(categories.map(c => c.key));
+
   // For each category, find the winning card
   const catWinners = {};
-  categories.forEach(cat => {
+  scoringCats.forEach(cat => {
     const best = getBestCard(eligible, cat.key, mode, pointsPref);
     if (best) {
-      if (!catWinners[best.card.id]) catWinners[best.card.id] = [];
+      // Include if: in active display categories, OR card has a specific bonus (not just flat rate)
       const displayMult = effectiveMult(best.card, cat.key, _today);
-      const cv = CURRENCY_VALUES[best.card.currency][mode];
-      catWinners[best.card.id].push({ cat, best: { ...best, mult: displayMult, pct: displayMult * cv * 100 }, subs: [] });
+      const flatRate = best.card.multipliers.other ?? 1;
+      const hasSpecificBonus = displayMult > flatRate;
+      if (displayKeys.has(cat.key) || hasSpecificBonus) {
+        if (!catWinners[best.card.id]) catWinners[best.card.id] = [];
+        const cv = CURRENCY_VALUES[best.card.currency][mode];
+        catWinners[best.card.id].push({ cat, best: { ...best, mult: displayMult, pct: displayMult * cv * 100 }, subs: [] });
+      }
     }
   });
 
   // Cache parent results to avoid redundant getBestCard calls
   const parentResultCache = {};
-  categories.forEach(cat => {
+  scoringCats.forEach(cat => {
     parentResultCache[cat.key] = getBestCard(eligible, cat.key, mode, pointsPref);
   });
 
