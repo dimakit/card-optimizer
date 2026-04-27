@@ -2,6 +2,15 @@ import React, { useState, useEffect } from "react";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
+// Higher = more flexible/transferable (used as tiebreaker)
+const CURRENCY_FLEXIBILITY = {
+  UR:       4,  // Chase — transfer to Hyatt, United, etc.
+  MR:       4,  // Amex — transfer to Delta, Marriott, etc.
+  CAPONE:   3,  // Capital One — transfer to Air Canada, Turkish, etc.
+  TYP:      3,  // Citi — transfer to Turkish, Avianca, etc.
+  CASHBACK: 1,  // Fixed cash, no transfer upside
+};
+
 const CURRENCY_VALUES = {
   UR:       { cashback: 0.01,  travel: 0.015 },
   MR:       { cashback: 0.006, travel: 0.01  },
@@ -348,7 +357,12 @@ function getBestCard(cards, category, mode, pointsPref) {
       if (aMatch !== bMatch) return bMatch - aMatch;
     }
 
-    // 4. Breadth (most versatile card)
+    // 4. Transferable points beat fixed cash back (same floor value, more upside)
+    const aFlex = CURRENCY_FLEXIBILITY[a.card.currency] || 1;
+    const bFlex = CURRENCY_FLEXIBILITY[b.card.currency] || 1;
+    if (aFlex !== bFlex) return bFlex - aFlex;
+
+    // 5. Breadth (most versatile card)
     return b.breadth - a.breadth;
   });
   return scored[0];
