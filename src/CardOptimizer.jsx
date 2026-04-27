@@ -1562,7 +1562,6 @@ export default function App() {
 
                 {/* Result */}
                 {selectedCategory && (() => {
-                  try {
                   const cat = CATEGORIES.find(c => c.key === selectedCategory);
                   const wallets = [
                     { label: names.me,     cards: meCards,     color: T.accent },
@@ -1606,7 +1605,7 @@ export default function App() {
                             </div>
                             {/* Primary card */}
                             <div style={{ padding: "20px 16px", background: T.surface, display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
-                              {selectedCategory === "groceries" && <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase" }}>Supermarkets</div>}
+                              {selectedCategory === "groceries" && cat && <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase" }}>Supermarkets</div>}
                               {selectedCategory === "travel" && <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase" }}>Direct with airline / hotel</div>}
                               <CardBadge card={best.card} width={160} height={101} isSelected />
                               <div>
@@ -1681,10 +1680,6 @@ export default function App() {
                       })}
                     </div>
                   );
-                  } catch(e) {
-                    console.error("Card to Use crash:", e);
-                    return <div style={{padding:20,color:"red",fontFamily:"monospace",fontSize:"0.7rem"}}>Error: {e.message}</div>;
-                  }
                 })()}
               </div>
             )}
