@@ -437,6 +437,8 @@ function buildCardResults(cards, mode, pointsPref, categories) {
   });
 
   // For each sub-category, find winner and attach to parent winner if different
+  // Group subs by winning card so same-card subs show as one combined line
+  const subGroups = {}; // key: parentWinId + "_" + subCardId → { subs, card, mult, pct, sameAsParent }
   ALL_SUBS.forEach(sub => {
     const parentCat = categories.find(c => c.key === sub.parent);
     if (!parentCat) return;
@@ -449,20 +451,40 @@ function buildCardResults(cards, mode, pointsPref, categories) {
       if (parentWin) {
         const subMult = effectiveMult(subBest.card, sub.key, _today);
         const subCv = CURRENCY_VALUES[subBest.card.currency][mode];
-        // Only add sub if it differs from parent winner OR is a different card
         const isSameCard = subBest.card.id === parentCardId;
         const isSameMult = Math.abs(subMult * subCv - parentWin.best.mult * CURRENCY_VALUES[parentWin.best.card.currency][mode]) < 0.0001;
         if (!isSameCard || !isSameMult) {
-          parentWin.subs.push({
-            sub,
-            card: subBest.card,
-            mult: subMult,
-            pct: subMult * subCv * 100,
-            sameAsParent: isSameCard,
-          });
+          const groupKey = `${parentCardId}_${sub.parent}_${subBest.card.id}`;
+          if (!subGroups[groupKey]) {
+            subGroups[groupKey] = {
+              parentWin,
+              card: subBest.card,
+              mult: subMult,
+              pct: subMult * subCv * 100,
+              sameAsParent: isSameCard,
+              subs: [],
+            };
+          }
+          subGroups[groupKey].subs.push(sub);
         }
       }
     }
+  });
+
+  // Push grouped subs into parentWin.subs as combined entries
+  Object.values(subGroups).forEach(group => {
+    group.parentWin.subs.push({
+      // Combined sub: merge icons/labels from all subs in group
+      sub: {
+        key: group.subs.map(s => s.key).join("+"),
+        label: group.subs.map(s => s.label).join(" / "),
+        icon: group.subs.map(s => s.icon).join(""),
+      },
+      card: group.card,
+      mult: group.mult,
+      pct: group.pct,
+      sameAsParent: group.sameAsParent,
+    });
   });
 
   // Build one entry per winning card
