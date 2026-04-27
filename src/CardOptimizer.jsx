@@ -253,7 +253,8 @@ function effectiveStatus(card) {
 function effectiveMult(card, catKey) {
   const today = new Date();
   // Special keys that live directly in multipliers but not in CATEGORIES
-  if (catKey === "whole_foods" || catKey === "groceries_big_box" || catKey === "wholesale_clubs") {
+  if (catKey === "whole_foods" || catKey === "groceries_big_box" || catKey === "wholesale_clubs" ||
+      catKey.startsWith("usb_")) {
     return card.multipliers[catKey] ?? card.multipliers.other ?? 1;
   }
   let catMult = card.multipliers[catKey] ?? 1;
@@ -369,6 +370,28 @@ function ownerCards(ownership, who, cards) {
 // ─── Results column ────────────────────────────────────────────────────────────
 
 // Build card-first results: for each card, which categories does it win?
+// US Bank Cash+ specific category labels (mapped to existing keys or custom)
+const USB_5X_CATS = [
+  { key: "streaming",       label: "TV, Internet & Streaming" },
+  { key: "homeimprove",     label: "Home Utilities" },
+  { key: "entertainment",   label: "Movie Theaters" },
+  { key: "usb_utilities",   label: "Home Utilities" },
+  { key: "usb_cellphone",   label: "Cell Phone Providers" },
+  { key: "usb_electronics", label: "Electronics Stores" },
+  { key: "usb_department",  label: "Department Stores" },
+  { key: "dining",          label: "Fast Food / Dining" },
+  { key: "usb_furniture",   label: "Furniture Stores" },
+  { key: "travel",          label: "Ground Transportation" },
+  { key: "usb_gym",         label: "Gyms & Fitness" },
+  { key: "usb_clothing",    label: "Clothing Stores" },
+  { key: "usb_sporting",    label: "Sporting Goods" },
+];
+const USB_2X_CATS = [
+  { key: "gas",       label: "Gas & EV Charging" },
+  { key: "groceries", label: "Grocery Stores" },
+  { key: "dining",    label: "Restaurants" },
+];
+
 // Sub-categories that show inline under their parent category
 const GROCERY_SUBS = [
   { key: "whole_foods",     label: "Whole Foods",                   icon: "🥦", parent: "groceries" },
@@ -607,12 +630,28 @@ export default function App() {
   // Build effective CARDS with configurable multipliers applied
   const effectiveCards = CARDS.map(card => {
     if (!card.configurable) return card;
+    const newMults = { ...card.multipliers };
+
+    if (card.configurable === "triple") {
+      const cfg = cardConfig[card.id] || {};
+      const picks5x = cfg.picks5x || [];
+      const picks2x = cfg.picks2x || [];
+      const fullyConfigured = picks5x.length === 2 && picks2x.length === 1;
+      if (!fullyConfigured) return card;
+      picks5x.forEach(k => { newMults[k] = card.configurableRate || 5; });
+      picks2x.forEach(k => {
+        // Only set 2x if not already higher from 5x pick
+        if ((newMults[k] || 1) < (card.configurableRate2 || 2)) {
+          newMults[k] = card.configurableRate2 || 2;
+        }
+      });
+      return { ...card, multipliers: newMults };
+    }
+
     const chosen = cardConfig[card.id] || [];
     const maxPicks = card.configurable === "double" ? 2 : 1;
     const fullyConfigured = chosen.length === maxPicks;
-    if (!fullyConfigured) return card; // not fully configured = all 1x
-    const newMults = { ...card.multipliers };
-    // Use year1 rate if applicable and toggled on
+    if (!fullyConfigured) return card;
     const isYear1 = yearOneCards.includes(card.id) && card.configurableRateYear1;
     const rate = isYear1 ? card.configurableRateYear1 : (card.configurableRate || 5);
     chosen.forEach(catKey => { newMults[catKey] = rate; });
@@ -1020,6 +1059,15 @@ export default function App() {
                         <span className="mono" style={{ fontSize: "0.58rem", color: T.textDim, border: `1px solid ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>{card.currency}</span>
                         {isDraft && !card.rotatingPeriod && <span className="mono" style={{ fontSize: "0.57rem", color: T.textDim, border: `1px dashed ${T.border}`, borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>coming soon</span>}
                         {card.configurable && isAssigned && (() => {
+                          if (card.configurable === "triple") {
+                            const cfg = cardConfig[card.id] || {};
+                            const picks5x = (cfg.picks5x || []).length;
+                            const picks2x = (cfg.picks2x || []).length;
+                            const done = picks5x === 2 && picks2x === 1;
+                            return !done && (
+                              <span className="mono" style={{ fontSize: "0.57rem", color: "#e67e22", border: "1px solid #e67e22", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>configure</span>
+                            );
+                          }
                           const chosen = cardConfig[card.id] || [];
                           const maxPicks = card.configurable === "double" ? 2 : 1;
                           const fullyConfigured = chosen.length === maxPicks;
@@ -1030,6 +1078,19 @@ export default function App() {
                           );
                         })()}
                         {card.configurable && isAssigned && (() => {
+                          if (card.configurable === "triple") {
+                            const cfg = cardConfig[card.id] || {};
+                            const picks5x = cfg.picks5x || [];
+                            const picks2x = cfg.picks2x || [];
+                            if (picks5x.length !== 2 || picks2x.length !== 1) return null;
+                            const label5x = picks5x.map(k => USB_5X_CATS.find(c=>c.key===k)?.label || k).join(", ");
+                            const label2x = USB_2X_CATS.find(c=>c.key===picks2x[0])?.label || picks2x[0];
+                            return (
+                              <span className="mono" style={{ fontSize: "0.57rem", color: "#2e7d32", border: "1px solid #66bb6a", borderRadius: 3, padding: "1px 5px", flexShrink: 0 }}>
+                                5× {label5x} · 2× {label2x}
+                              </span>
+                            );
+                          }
                           const chosen = cardConfig[card.id] || [];
                           const maxPicks = card.configurable === "double" ? 2 : 1;
                           if (chosen.length !== maxPicks) return null;
@@ -1055,6 +1116,69 @@ export default function App() {
                       <MultiplierLine card={card} advancedMode={advancedMode} />
                       {/* Configurable category picker */}
                       {card.configurable && isAssigned && (() => {
+                        // Triple configurable (US Bank Cash+)
+                        if (card.configurable === "triple") {
+                          const cfg = cardConfig[card.id] || {};
+                          const picks5x = cfg.picks5x || [];
+                          const picks2x = cfg.picks2x || [];
+                          const fullyConfigured = picks5x.length === 2 && picks2x.length === 1;
+                          const set5x = (key) => setCardConfig(prev => {
+                            const cur = ((prev[card.id] || {}).picks5x) || [];
+                            const next = cur.includes(key) ? cur.filter(k => k !== key) : cur.length < 2 ? [...cur, key] : cur;
+                            return { ...prev, [card.id]: { ...(prev[card.id] || {}), picks5x: next } };
+                          });
+                          const set2x = (key) => setCardConfig(prev => {
+                            const cur = ((prev[card.id] || {}).picks2x) || [];
+                            const next = cur.includes(key) ? [] : [key];
+                            return { ...prev, [card.id]: { ...(prev[card.id] || {}), picks2x: next } };
+                          });
+                          return (
+                            <div style={{ marginTop: 6 }} onClick={e => e.stopPropagation()}>
+                              {!fullyConfigured && (
+                                <div className="mono" style={{ fontSize: "0.6rem", color: "#e67e22", marginBottom: 6, fontWeight: 600 }}>
+                                  ⚠ Choose 2 categories at 5% and 1 at 2% to include in optimizer
+                                </div>
+                              )}
+                              <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, marginBottom: 4 }}>5% categories (pick 2):</div>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
+                                {USB_5X_CATS.map(cat => {
+                                  const isChosen = picks5x.includes(cat.key);
+                                  const isDisabled = !isChosen && picks5x.length >= 2;
+                                  return (
+                                    <button key={cat.key + "_5x"} className="mono pill-btn"
+                                      onClick={() => set5x(cat.key)} disabled={isDisabled}
+                                      style={{
+                                        padding: "2px 7px", borderRadius: 4, fontSize: "0.58rem", fontWeight: 500,
+                                        border: `1px solid ${isChosen ? T.selectedBorder : T.border}`,
+                                        background: isChosen ? T.selectedBg : "transparent",
+                                        color: isChosen ? "#2e7d32" : isDisabled ? T.textDim : T.textMid,
+                                        opacity: isDisabled ? 0.4 : 1, cursor: isDisabled ? "not-allowed" : "pointer",
+                                      }}>{cat.label}</button>
+                                  );
+                                })}
+                              </div>
+                              <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, marginBottom: 4 }}>2% category (pick 1):</div>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                                {USB_2X_CATS.map(cat => {
+                                  const isChosen = picks2x.includes(cat.key);
+                                  return (
+                                    <button key={cat.key + "_2x"} className="mono pill-btn"
+                                      onClick={() => set2x(cat.key)}
+                                      style={{
+                                        padding: "2px 7px", borderRadius: 4, fontSize: "0.58rem", fontWeight: 500,
+                                        border: `1px solid ${isChosen ? "#f0a500" : T.border}`,
+                                        background: isChosen ? "#fff8e1" : "transparent",
+                                        color: isChosen ? "#b45309" : T.textMid,
+                                        cursor: "pointer",
+                                      }}>{cat.label}</button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // Single / double configurable
                         const chosen = cardConfig[card.id] || [];
                         const maxPicks = card.configurable === "double" ? 2 : 1;
                         const needsConfig = chosen.length === 0;
