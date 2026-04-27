@@ -244,7 +244,7 @@ function effectiveStatus(card) {
 function effectiveMult(card, catKey) {
   const today = new Date();
   // Special keys that live directly in multipliers but not in CATEGORIES
-  if (catKey === "whole_foods" || catKey === "groceries_big_box") {
+  if (catKey === "whole_foods" || catKey === "groceries_big_box" || catKey === "wholesale_clubs") {
     return card.multipliers[catKey] ?? card.multipliers.other ?? 1;
   }
   let catMult = card.multipliers[catKey] ?? 1;
@@ -1261,6 +1261,10 @@ export default function App() {
                           ? getBestCard(wallet.cards, "whole_foods", mode, pointsPref)
                           : null;
                         const wholeFoodsDiffers = wholeFoodsBest && wholeFoodsBest.card.id !== best.card.id;
+                        const wholesaleBest = selectedCategory === "groceries"
+                          ? getBestCard(wallet.cards, "wholesale_clubs", mode, pointsPref)
+                          : null;
+                        const wholesaleDiffers = wholesaleBest && wholesaleBest.card.id !== best.card.id;
                         // Sub-result for travel portal
                         const portalBest = selectedCategory === "travel"
                           ? getBestCard(wallet.cards, "travel_portal", mode, pointsPref)
@@ -1308,6 +1312,17 @@ export default function App() {
                                   <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>Whole Foods</div>
                                   <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{wholeFoodsBest.card.name}</div>
                                   <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{wholeFoodsBest.mult}× · {wholeFoodsBest.pct.toFixed(1)}%</div>
+                                </div>
+                              </div>
+                            )}
+                            {/* Wholesale clubs sub-result for groceries */}
+                            {selectedCategory === "groceries" && wholesaleBest && wholesaleDiffers && (
+                              <div style={{ borderTop: `1px solid ${T.border}`, padding: "12px 16px", background: T.bg, display: "flex", alignItems: "center", gap: 12 }}>
+                                <CardBadge card={wholesaleBest.card} width={72} height={45} isSelected />
+                                <div style={{ flex: 1 }}>
+                                  <div className="mono" style={{ fontSize: "0.58rem", color: T.textDim, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 3 }}>Wholesale Clubs (Costco, Sam's, BJ's)</div>
+                                  <div className="serif" style={{ fontSize: "0.82rem", color: T.text }}>{wholesaleBest.card.name}</div>
+                                  <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{wholesaleBest.mult}× · {wholesaleBest.pct.toFixed(1)}%</div>
                                 </div>
                               </div>
                             )}
