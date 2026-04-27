@@ -42,6 +42,13 @@ const CATEGORIES_ADVANCED = [
   { key: "uber",            label: "Uber",                 icon: "🚕" },
   { key: "peloton",         label: "Peloton",              icon: "🚴" },
   { key: "entertainment",   label: "Entertainment",        icon: "🎟️" },
+  { key: "usb_gym",         label: "Gyms & Fitness",        icon: "🏋️" },
+  { key: "usb_cellphone",   label: "Cell Phone Providers",  icon: "📱" },
+  { key: "usb_electronics", label: "Electronics Stores",    icon: "💻" },
+  { key: "usb_department",  label: "Department Stores",     icon: "🏬" },
+  { key: "usb_furniture",   label: "Furniture Stores",      icon: "🛋️" },
+  { key: "usb_clothing",    label: "Clothing Stores",       icon: "👗" },
+  { key: "usb_sporting",    label: "Sporting Goods",        icon: "⚽" },
 ];
 
 const ISSUER_PALETTE = {
