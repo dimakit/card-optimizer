@@ -76,7 +76,7 @@
       "entertainment": 1,
       "groceries_big_box": 1,
       "whole_foods": 3,
-      "wholesale_clubs": 3
+      "wholesale_clubs": 1
     },
     "timedBonuses": [
       {
@@ -241,7 +241,7 @@
       "entertainment": 1,
       "groceries_big_box": 1,
       "whole_foods": 3,
-      "wholesale_clubs": 3
+      "wholesale_clubs": 1
     }
   },
   {
@@ -554,7 +554,7 @@
       "entertainment": 1,
       "groceries_big_box": 1,
       "whole_foods": 1,
-      "wholesale_clubs": 1
+      "wholesale_clubs": 1.5
     }
   },
   {
@@ -585,7 +585,7 @@
       "entertainment": 1,
       "groceries_big_box": 1,
       "whole_foods": 1,
-      "wholesale_clubs": 1
+      "wholesale_clubs": 1.5
     }
   },
   {
