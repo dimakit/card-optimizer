@@ -209,7 +209,7 @@ function MultiplierLine({ card, advancedMode }) {
       cat,
       mult: (cat.key === "whole_foods" || cat.key === "wholesale_clubs" || cat.key === "groceries_big_box")
         ? (card.multipliers[cat.key] ?? 1)
-        : effectiveMult(card, cat.key)
+        : effectiveMult(card, cat.key, _t)
     }))
     .filter(x => x.mult > floor || (floor > 1 && x.cat.key === "other"))
     .sort((a, b) => b.mult - a.mult);
@@ -1049,8 +1049,8 @@ export default function App() {
               {sortedFiltered.map(card => {
                 const own = ownership[card.id] || null;
                 const isAssigned = !!own;
-                const isDraft = effectiveStatus(card) === "draft";
-                const isExpired = card.rotatingPeriod && effectiveStatus(card) === "draft" && card.status === "supported";
+                const _now = new Date(); const isDraft = effectiveStatus(card, _now) === "draft";
+                const isExpired = card.rotatingPeriod && effectiveStatus(card, _now) === "draft" && card.status === "supported";
 
                 const setOwn = (val) => {
                   setOwnership(prev => {
@@ -1490,7 +1490,7 @@ export default function App() {
                   const wallets = [
                     { label: names.me,     cards: meCards,     color: T.accent },
                     { label: names.spouse, cards: spouseCards, color: "#4b5563" },
-                  ].filter(w => w.cards.filter(c => effectiveStatus(c) !== "draft").length > 0);
+                  ].filter(w => w.cards.filter(c => effectiveStatus(c, new Date()) !== "draft").length > 0);
 
                   return (
                     <div style={{ display: "flex", flexDirection: wallets.length > 1 ? "row" : "column", gap: 12 }}>
