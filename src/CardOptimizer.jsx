@@ -1058,27 +1058,10 @@ export default function App() {
           </div>
         )}
 
-        {/* Tabs */}
-        <div style={{ maxWidth: 860, margin: "0 auto", display: "flex" }}>
-          {[
-            { id: "nearby",    label: "Nearby" },
-            { id: "pick",      label: totalAssigned ? `My Cards (${totalAssigned})` : "My Cards" },
-            { id: "results",   label: "Best Card Per Category" },
-            { id: "cardtouse", label: "Card to Use" },
-          ].map(tab => (
-            <button key={tab.id} className="mono tab-btn" onClick={() => setView(tab.id)} style={{
-              padding: "10px 17px", color: view === tab.id ? T.text : T.textDim,
-              fontSize: "0.68rem", fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase",
-              borderBottom: view === tab.id ? `2px solid ${T.accent}` : "2px solid transparent",
-            }}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "22px 20px 52px" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "22px 20px calc(88px + env(safe-area-inset-bottom, 0px))" }}>
 
         {/* ═══ NEARBY VIEW ═══ */}
         {view === "nearby" && (
@@ -1911,6 +1894,30 @@ export default function App() {
           </div>
         )}
 
+      </div>
+
+      {/* ── Bottom tab bar ── */}
+      <div style={{
+        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 10,
+        display: "flex", background: T.topbar, backdropFilter: "blur(10px)",
+        borderTop: `1px solid ${T.border}`, boxShadow: "0 -1px 8px rgba(0,0,0,0.06)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}>
+        {[
+          { id: "nearby",    icon: "📍", label: "Nearby" },
+          { id: "pick",      icon: "💳", label: totalAssigned ? `Cards (${totalAssigned})` : "Cards" },
+          { id: "results",   icon: "🏆", label: "Best Card" },
+          { id: "cardtouse", icon: "🎯", label: "Card to Use" },
+        ].map(tab => (
+          <button key={tab.id} className="mono tab-btn" onClick={() => setView(tab.id)} style={{
+            flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+            padding: "8px 4px 7px", color: view === tab.id ? T.accent : T.textDim,
+            fontSize: "0.6rem", fontWeight: 500, letterSpacing: "0.02em",
+          }}>
+            <span style={{ fontSize: "1.15rem", lineHeight: 1 }}>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
       </div>
     </div>
   );
