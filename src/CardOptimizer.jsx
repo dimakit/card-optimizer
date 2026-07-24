@@ -678,6 +678,51 @@ export default function App() {
     ? [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED]
     : CATEGORIES_LIGHT;
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Nearby tab state
+  const [nearbyWallet, setNearbyWallet] = useState("me"); // "me" | "spouse"
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [nearbyError, setNearbyError] = useState("");
+  const [nearbySearched, setNearbySearched] = useState(false);
+  const [manualQuery, setManualQuery] = useState("");
+  const [manualResults, setManualResults] = useState([]);
+  const [manualLoading, setManualLoading] = useState(false);
+
+  const fetchNearby = async () => {
+    setNearbyLoading(true);
+    setNearbyError("");
+    setNearbySearched(false);
+    try {
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+      );
+      const { latitude, longitude } = pos.coords;
+      const res = await fetch(`/api/places?lat=${latitude}&lng=${longitude}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setNearbyPlaces(data.places || []);
+      setNearbySearched(true);
+    } catch (e) {
+      setNearbyError(e.code === 1 ? "Location access denied. Please allow location in your browser." : e.message);
+    } finally {
+      setNearbyLoading(false);
+    }
+  };
+
+  const fetchManual = async (q) => {
+    if (!q.trim()) return;
+    setManualLoading(true);
+    try {
+      const res = await fetch(`/api/places?query=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      setManualResults(data.places || []);
+    } catch (e) {
+      setManualResults([]);
+    } finally {
+      setManualLoading(false);
+    }
+  };
   const [yearOneCards, setYearOneCards] = useState(() => {
     try { return JSON.parse(localStorage.getItem("cp_year_one_v1") || "[]"); }
     catch { return []; }
@@ -769,7 +814,7 @@ export default function App() {
     try { localStorage.setItem("cp_points_pref_v1", pointsPref); } catch {}
   }, [pointsPref]);
 
-  const [view, setView] = useState("pick");
+  const [view, setView] = useState("nearby");
   const [search, setSearch] = useState("");
   const [issuerFilter, setIssuerFilter] = useState(null);
   const [ownerFilter, setOwnerFilter] = useState(null);
@@ -1016,6 +1061,7 @@ export default function App() {
         {/* Tabs */}
         <div style={{ maxWidth: 860, margin: "0 auto", display: "flex" }}>
           {[
+            { id: "nearby",    label: "Nearby" },
             { id: "pick",      label: totalAssigned ? `My Cards (${totalAssigned})` : "My Cards" },
             { id: "results",   label: "Best Card Per Category" },
             { id: "cardtouse", label: "Card to Use" },
@@ -1033,6 +1079,185 @@ export default function App() {
 
       {/* ── Content ── */}
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "22px 20px 52px" }}>
+
+        {/* ═══ NEARBY VIEW ═══ */}
+        {view === "nearby" && (
+          <div className="slide-in">
+            {totalAssigned === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 20px" }}>
+                <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📍</div>
+                <p className="serif" style={{ fontSize: "1.2rem", marginBottom: 8, color: T.text }}>Set up your wallet first</p>
+                <p className="mono" style={{ fontSize: "0.7rem", color: T.textDim, marginBottom: 20 }}>Add your cards in My Cards so we know what's in your wallet</p>
+                <button className="mono pill-btn" onClick={() => setView("pick")} style={{
+                  padding: "10px 22px", background: T.accent, color: T.accentText,
+                  borderRadius: 6, fontWeight: 600, fontSize: "0.74rem", letterSpacing: "0.05em",
+                  textTransform: "uppercase", border: "none",
+                }}>Set Up My Cards</button>
+              </div>
+            ) : (
+              <div>
+                {/* Wallet toggle */}
+                {meCards.length > 0 && spouseCards.length > 0 && (
+                  <div style={{ display: "flex", gap: 0, background: T.surfaceAlt, borderRadius: 7, padding: 3, border: `1px solid ${T.border}`, width: "fit-content", marginBottom: 18 }}>
+                    {[{ id: "me", label: names.me }, { id: "spouse", label: names.spouse }].map(w => (
+                      <button key={w.id} className="mono pill-btn" onClick={() => setNearbyWallet(w.id)} style={{
+                        padding: "5px 16px", borderRadius: 5, fontSize: "0.68rem", fontWeight: 500,
+                        background: nearbyWallet === w.id ? T.accent : "transparent",
+                        color: nearbyWallet === w.id ? T.accentText : T.textMid,
+                        border: "none",
+                      }}>{w.label}</button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Find nearby button */}
+                {!nearbySearched && (
+                  <div style={{ textAlign: "center", padding: "30px 20px" }}>
+                    <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📍</div>
+                    <p className="serif" style={{ fontSize: "1.1rem", marginBottom: 6, color: T.text }}>Find best card near you</p>
+                    <p className="mono" style={{ fontSize: "0.68rem", color: T.textDim, marginBottom: 20 }}>We'll detect nearby stores and show which card to use</p>
+                    <button className="mono pill-btn" onClick={fetchNearby} disabled={nearbyLoading} style={{
+                      padding: "12px 28px", background: T.accent, color: T.accentText,
+                      borderRadius: 8, fontWeight: 600, fontSize: "0.76rem", letterSpacing: "0.05em",
+                      textTransform: "uppercase", border: "none", opacity: nearbyLoading ? 0.6 : 1,
+                    }}>{nearbyLoading ? "Detecting location..." : "📍 Find Nearby Stores"}</button>
+                    {nearbyError && <p className="mono" style={{ fontSize: "0.65rem", color: "#ef4444", marginTop: 12 }}>{nearbyError}</p>}
+                  </div>
+                )}
+
+                {/* Nearby results */}
+                {nearbySearched && (() => {
+                  const walletCards = nearbyWallet === "me" ? meCards : spouseCards;
+                  return (
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                        <p className="mono" style={{ fontSize: "0.65rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                          {nearbyPlaces.length} stores found nearby
+                        </p>
+                        <button className="mono pill-btn" onClick={fetchNearby} style={{
+                          padding: "4px 10px", borderRadius: 5, fontSize: "0.62rem",
+                          border: `1px solid ${T.border}`, background: "transparent", color: T.textMid,
+                        }}>↻ Refresh</button>
+                      </div>
+
+                      {nearbyPlaces.length === 0 ? (
+                        <p className="mono" style={{ fontSize: "0.7rem", color: T.textDim, textAlign: "center", padding: "20px 0" }}>
+                          No relevant stores found within 500m. Try searching manually below.
+                        </p>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+                          {nearbyPlaces.map((place, i) => {
+                            const best = getBestCard(walletCards, place.category, mode, pointsPref);
+                            const cat = [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED,
+                              { key: "whole_foods", label: "Whole Foods", icon: "🥦" },
+                              { key: "target", label: "Target", icon: "🎯" },
+                              { key: "walmart", label: "Walmart", icon: "🛒" },
+                              { key: "wholesale_clubs", label: "Wholesale Clubs", icon: "🏪" },
+                            ].find(c => c.key === place.category) || { label: "Other", icon: "💳" };
+                            return (
+                              <div key={i} style={{
+                                borderRadius: 10, background: T.surface, border: `1px solid ${T.border}`,
+                                overflow: "hidden", animation: `slideIn 0.2s ease ${i * 0.05}s both`,
+                              }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px" }}>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div className="serif" style={{ fontSize: "0.9rem", color: T.text, marginBottom: 2 }}>{place.name}</div>
+                                    <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{cat.icon} {cat.label}{place.address ? ` · ${place.address}` : ""}</div>
+                                  </div>
+                                  {best ? (
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                                      <CardBadge card={best.card} width={62} height={39} isSelected />
+                                      <div style={{ textAlign: "right" }}>
+                                        <div className="serif" style={{ fontSize: "0.78rem", color: T.text }}>{best.card.shortName}</div>
+                                        <div className="mono" style={{ fontSize: "0.85rem", fontWeight: 700, color: T.text }}>{best.pct.toFixed(1)}%</div>
+                                        <div className="mono" style={{ fontSize: "0.55rem", color: T.textDim }}>{mode === "cashback" ? "cash back" : "travel"}</div>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="mono" style={{ fontSize: "0.65rem", color: T.textDim }}>No card assigned</div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Manual search */}
+                <div style={{ borderTop: nearbySearched ? `1px solid ${T.border}` : "none", paddingTop: nearbySearched ? 20 : 0 }}>
+                  <p className="mono" style={{ fontSize: "0.63rem", color: T.textDim, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 10 }}>
+                    {nearbySearched ? "Or search a specific store" : "Search a store"}
+                  </p>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <input
+                      type="text"
+                      value={manualQuery}
+                      onChange={e => setManualQuery(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && fetchManual(manualQuery)}
+                      placeholder="e.g. Home Depot, Cheesecake Factory..."
+                      className="mono"
+                      style={{
+                        flex: 1, padding: "9px 12px", background: T.surface,
+                        border: `1px solid ${T.border}`, borderRadius: 7,
+                        color: T.text, fontSize: "0.8rem",
+                      }}
+                    />
+                    <button className="mono pill-btn" onClick={() => fetchManual(manualQuery)} disabled={manualLoading} style={{
+                      padding: "9px 16px", borderRadius: 7, background: T.accent, color: T.accentText,
+                      fontWeight: 600, fontSize: "0.7rem", border: "none", flexShrink: 0,
+                      opacity: manualLoading ? 0.6 : 1,
+                    }}>{manualLoading ? "..." : "Search"}</button>
+                  </div>
+
+                  {manualResults.length > 0 && (() => {
+                    const walletCards = nearbyWallet === "me" ? meCards : spouseCards;
+                    return (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {manualResults.map((place, i) => {
+                          const best = getBestCard(walletCards, place.category, mode, pointsPref);
+                          const cat = [...CATEGORIES_LIGHT, ...CATEGORIES_ADVANCED,
+                            { key: "whole_foods", label: "Whole Foods", icon: "🥦" },
+                            { key: "target", label: "Target", icon: "🎯" },
+                            { key: "walmart", label: "Walmart", icon: "🛒" },
+                            { key: "wholesale_clubs", label: "Wholesale Clubs", icon: "🏪" },
+                          ].find(c => c.key === place.category) || { label: "Other", icon: "💳" };
+                          return (
+                            <div key={i} style={{
+                              borderRadius: 10, background: T.surface, border: `1px solid ${T.border}`,
+                              overflow: "hidden",
+                            }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px" }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div className="serif" style={{ fontSize: "0.9rem", color: T.text, marginBottom: 2 }}>{place.name}</div>
+                                  <div className="mono" style={{ fontSize: "0.6rem", color: T.textDim }}>{cat.icon} {cat.label}{place.address ? ` · ${place.address}` : ""}</div>
+                                </div>
+                                {best ? (
+                                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                                    <CardBadge card={best.card} width={62} height={39} isSelected />
+                                    <div style={{ textAlign: "right" }}>
+                                      <div className="serif" style={{ fontSize: "0.78rem", color: T.text }}>{best.card.shortName}</div>
+                                      <div className="mono" style={{ fontSize: "0.85rem", fontWeight: 700, color: T.text }}>{best.pct.toFixed(1)}%</div>
+                                      <div className="mono" style={{ fontSize: "0.55rem", color: T.textDim }}>{mode === "cashback" ? "cash back" : "travel"}</div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="mono" style={{ fontSize: "0.65rem", color: T.textDim }}>No card assigned</div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ═══ PICK VIEW ═══ */}
         {view === "pick" && (
