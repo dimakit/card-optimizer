@@ -918,10 +918,11 @@ export default function App() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: T.bg, color: T.text, fontFamily: "Georgia,serif" }}>
+    <div style={{ minHeight: "100vh", width: "100%", overflowX: "hidden", background: T.bg, color: T.text, fontFamily: "Georgia,serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500;600&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { overflow-x: hidden; max-width: 100%; }
         body { background: ${T.bg}; }
         .mono { font-family: 'DM Mono','Courier New',monospace; }
         .serif { font-family: 'DM Serif Display',Georgia,serif; }
@@ -943,9 +944,9 @@ export default function App() {
 
       {/* ── Top bar ── */}
       <div style={{ borderBottom: `1px solid ${T.border}`, padding: "0 20px", position: "sticky", top: 0, zIndex: 10, background: T.topbar, backdropFilter: "blur(10px)", boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", rowGap: 8, padding: "10px 0" }}>
           <span className="serif" style={{ fontSize: "1.18rem", color: T.text }}>CardOptimizer</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", rowGap: 8 }}>
             <button className="mono pill-btn" onClick={() => setShowShare(s => !s)} style={{
               padding: "6px 12px", borderRadius: 6, fontSize: "0.66rem", fontWeight: 500,
               letterSpacing: "0.05em", border: `1px solid ${T.border}`,
